@@ -1,9 +1,10 @@
 (ns ulake-core.core
   (:gen-class)
   (:require [ulake-core.service])
-  (:import [io.grpc Server ServerBuilder]
-           [io.grpc.stub StreamObserver]
-           [ulake-core.service GreeterServiceImpl]))
+  (:import (com.rethinkdb RethinkDB)
+           (io.grpc Server ServerBuilder)
+           (io.grpc.stub StreamObserver)
+           (ulake-core.service GreeterServiceImpl)))
 
 (def SERVER_PORT 50051)
 
@@ -20,6 +21,9 @@
       (.awaitTermination server))))
 
 (defn -main
+  "I don't do a whole lot ... yet."
   [& args]
+  (with-open [conn (-> (.connection RethinkDB/r) .connect)]
+    (-> (.range RethinkDB/r 10) (.coerceTo "array") (.run conn) println))
   (print "Now listening on port " SERVER_PORT)
   (start))

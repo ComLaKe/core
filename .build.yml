@@ -1,0 +1,15 @@
+image: debian/buster
+arch: amd64
+packages:
+  - leiningen
+  - rethinkdb
+repositories:
+  rethinkdb: >-
+    https://download.rethinkdb.com/repository/debian-buster buster main
+    539A3A8C6692E6E3F69B3FE81D85E93F801BB43F
+sources:
+  - https://git.sr.ht/~cnx/ulake-core
+tasks:
+  - build: |
+      cd ulake-core
+      lein uberjar

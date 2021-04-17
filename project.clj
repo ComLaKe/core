@@ -5,7 +5,8 @@
             :url "https://www.gnu.org/licenses/agpl-3.0"}
   :dependencies [[org.clojure/clojure "1.10.3"]
                  [com.google.protobuf/protobuf-java "3.15.8"]
-                 [io.netty/netty-codec-http2 "4.1.63.Final"]
+                 [com.rethinkdb/rethinkdb-driver "2.4.4"]
+                 [io.netty/netty-codec-http2 "4.1.52.Final"]
                  [io.grpc/grpc-netty "1.37.0"]
                  [io.grpc/grpc-protobuf "1.37.0"]
                  [io.grpc/grpc-stub "1.37.0"]
