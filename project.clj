@@ -4,18 +4,11 @@
   :license {:name "GNU Affero General Public License v3.0"
             :url "https://www.gnu.org/licenses/agpl-3.0"}
   :dependencies [[org.clojure/clojure "1.10.3"]
-                 [com.google.protobuf/protobuf-java "3.15.8"]
                  [com.rethinkdb/rethinkdb-driver "2.4.4"]
-                 [io.netty/netty-codec-http2 "4.1.52.Final"]
-                 [io.grpc/grpc-netty "1.37.0"]
-                 [io.grpc/grpc-protobuf "1.37.0"]
-                 [io.grpc/grpc-stub "1.37.0"]
-                 [javax.annotation/javax.annotation-api "1.3.2"]]
-  :plugins [[lein-protoc "0.5.0"]]
-  :protoc-version "3.15.8"
-  :protoc-grpc {:version "1.37.0"}
+                 [compojure "1.6.2"]
+                 [http-kit "2.3.0"]
+                 [ring/ring-devel "1.9.2"]
+                 [ring/ring-jetty-adapter "1.9.2"]]
   :main ^:skip-aot ulake-core.core
   :target-path "target/%s"
-  :proto-target-path "target/generated-sources/protobuf"
-  :java-source-paths ["target/generated-sources/protobuf"]
   :profiles {:uberjar {:aot :all}})

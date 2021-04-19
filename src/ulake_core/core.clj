@@ -1,29 +1,19 @@
 (ns ulake-core.core
   (:gen-class)
-  (:require [ulake-core.grpc])
-  (:import (com.rethinkdb RethinkDB)
-           (io.grpc ServerBuilder)
-           (io.grpc.stub StreamObserver)
-           (ulake-core.grpc GreeterServiceImpl)))
+  (:require [compojure.core :refer [GET POST defroutes]]
+            [compojure.handler :refer [site]]
+            [org.httpkit.server :refer [run-server]]
+            [ring.middleware.reload :refer [wrap-reload]])
+  (:import (com.rethinkdb RethinkDB)))
 
-(def SERVER_PORT 50051)
+(def in-dev? (constantly true))
 
-(defn -main
-  "I don't do a whole lot ... yet."
-  [& args]
-  (with-open [conn (.connect (.connection RethinkDB/r))]
-    (-> (.range RethinkDB/r 10)
-        (.coerceTo "array")
-        (.run conn)
-        println))
-  (print "Now listening on port " SERVER_PORT)
-  (let [greeter-service (GreeterServiceImpl.)
-        server (-> (ServerBuilder/forPort SERVER_PORT)
-                   (.addService greeter-service)
-                   (.build)
-                   (.start))]
-    (.addShutdownHook (Runtime/getRuntime)
-                      (Thread. #(if (not (nil? server))
-                                  (.shutdown server))))
-    (if (not (nil? server))
-      (.awaitTermination server))))
+(defroutes all-routes
+  (POST "/ingest" [] #(.read (:body %))))
+
+(defn -main [& args]
+  (let [handler (if (in-dev? args)
+                  (wrap-reload (site #'all-routes))
+                  (site all-routes))]
+    (run-server handler {:port 8090
+                         :max-bytes 4294967295})))
