@@ -45,38 +45,48 @@
      :headers {:content-type "text/plain"}
      :body cid}))
 
+(def logic-ops {"&" r/and
+                "|" r/or})
+(def arith-ops {"==" r/eq
+                "!=" r/ne})
+
 (defn parse
   "Parse query into ReQL."
   [row query]
   (assert (map? query))
   (assert (= (count query) 1))
-  (let [[k v] (first query)]
-    (case k ; FIXME: fallback properly
-      ("&" "|") (do (assert (vector? v))
-                    (apply (get {"&" r/and "|" r/or} k)
-                           (map (partial parse row) v)))
-      ("=") (do (assert (map? v))
-                (assert (= (count query) 1))
-                (let [op (get {"=" r/eq} k)
-                      [lhs rhs] (first v)]
-                  (op (r/get-field row lhs) rhs))))))
+  (let [[k v] (first query)
+        logic-op (get logic-ops k)]
+    (if logic-op
+      (do (assert (vector? v))
+          (apply logic-op (map (partial parse row) v)))
+      (do (assert (map? v))
+          (assert (= (count v) 1))
+          (let [arith-op (get arith-ops k)
+                [lhs rhs] (first v)]
+            (if arith-op
+              (arith-op (r/get-field row lhs) rhs)
+              (do (assert (= k "~"))
+                  (r/match (r/get-field row lhs) rhs))))))))
 
 (defn search
   "Return query result as a HTTP response."
   [request]
-  (try {:status 200
-        :headers {:content-type "application/json"}
-        :body (json/write-str
-                (with-open [conn (r/connect :host "127.0.0.1"
-                                            :port 28015
-                                            :db "test")]
-                  (-> (r/table "comlake")
-                      (r/filter (r/fn [row]
-                                  (parse row
-                                         (json/read (reader (:body request))))))
-                      (r/run conn))))}
-       (catch AssertionError e {:status 400
-                                :body "malformed query"})))
+  (let [parsed (try (r/fn [row]
+                      (parse row (json/read (reader (:body request)))))
+                    (catch AssertionError e nil))]
+    (if (nil? parsed)
+      {:status 400
+       :body "malformed query\n"}
+      {:status 200
+       :headers {:content-type "application/json"}
+       :body (json/write-str
+               (with-open [conn (r/connect :host "127.0.0.1"
+                                           :port 28015
+                                           :db "test")]
+                 (-> (r/table "comlake")
+                     (r/filter parsed)
+                     (r/run conn))))})))
 
 (defn route
   "Route HTTP endpoints."
