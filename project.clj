@@ -10,6 +10,6 @@
                  [com.github.ipfs/java-ipfs-http-client "1.3.3"]
                  [ring/ring-devel "1.9.2"]
                  [ring/ring-jetty-adapter "1.9.2"]]
-  :main ^:skip-aot ulake-core.core
+  :main ^:skip-aot ulake-core.main
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all}})

@@ -1,25 +1,34 @@
-(ns ulake-core.core
+;;;; Entry point
+;;;; Copyright (C) 2021  Nguyễn Gia Phong
+;;;;
+;;;; This file is part of ulake-core
+;;;;
+;;;; ulake-core is free software: you can redistribute it and/or modify
+;;;; it under the terms of the GNU Affero General Public License version 3
+;;;; as published by the Free Software Foundation.
+;;;;
+;;;; ulake-core is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;;;; GNU Affero General Public License for more details.
+;;;;
+;;;; You should have received a copy of the GNU Affero General Public License
+;;;; along with Acanban.  If not, see <https://www.gnu.org/licenses/>.
+
+(ns ulake-core.main
   (:gen-class)
   (:require [aleph.http :refer [start-server]]
             [clojure.string :refer [starts-with?]]
             [rethinkdb.query :as r]
-            [ring.middleware.reload :refer [wrap-reload]])
-  (:import (io.ipfs.api IPFS NamedStreamable$InputStreamWrapper)))
+            [ring.middleware.reload :refer [wrap-reload]]
+            [ulake-core.ipfs :as ipfs]))
 
-(def in-dev? (constantly true))
 (def header-prefix "content-")
-(def ipfs (IPFS. "/ip4/127.0.0.1/tcp/5001"))
-
-(defn ipfs-add
-  "Add the content of the given stream to IPFS and return the CID."
-  [istream]
-  (-> (->> istream NamedStreamable$InputStreamWrapper. (.add ipfs))
-      (.get 0) .-hash str))
 
 (defn ingest
   "Ingest the data and return appropriate response."
   [request]
-  (let [cid (ipfs-add (:body request)) ; TODO: handle exceptions
+  (let [cid (ipfs/add (:body request)) ; TODO: handle exceptions
         object (into {"cid" cid}
                      (for [[k v] (:headers request)
                            :when (starts-with? k header-prefix)]
@@ -29,7 +38,7 @@
           (r/insert object)
           (r/run conn)))
     {:status 200
-     :body (str object \space cid \newline)}))
+     :body cid}))
 
 (defn route
   "Route HTTP endpoints."
@@ -40,12 +49,13 @@
      :body "unsupported"}))
 
 (defn -main [& args]
+  ;; TODO: Abstract this away
   (with-open [conn (r/connect :host "127.0.0.1" :port 28015 :db "test")]
     (when (some #{"ulake"} (r/run (r/table-list) conn))
       (r/run (r/table-drop "ulake") conn))
     (r/run (r/table-create "ulake") conn))
   (start-server
-    (if (in-dev? args)
+    (if (some #{"reload"} args)
       (wrap-reload #'route)
       route)
     {:port 8090}))
