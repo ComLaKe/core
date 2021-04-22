@@ -8,13 +8,14 @@ repositories:
     https://download.rethinkdb.com/repository/debian-buster buster main
     539A3A8C6692E6E3F69B3FE81D85E93F801BB43F
 sources:
-  - https://git.sr.ht/~cnx/ulake-core
+  - https://github.com/ComLake/core
 tasks:
   - ipfs: |
-      curl https://dist.ipfs.io/go-ipfs/v0.8.0/go-ipfs_v0.8.0_linux-amd64.tar.gz |
+      curl \
+        https://dist.ipfs.io/go-ipfs/v0.8.0/go-ipfs_v0.8.0_linux-amd64.tar.gz |
         tar xvz
       sudo go-ipfs/install.sh
-      rm -r go-ipfs*
+      rm -r go-ipfs
       ipfs init
   - build: |
       ipfs daemon &
