@@ -1,28 +1,29 @@
 ;;;; Entry point
 ;;;; Copyright (C) 2021  Nguyễn Gia Phong
 ;;;;
-;;;; This file is part of ulake-core
+;;;; This file is part of comlake-core
 ;;;;
-;;;; ulake-core is free software: you can redistribute it and/or modify
+;;;; comlake-core is free software: you can redistribute it and/or modify
 ;;;; it under the terms of the GNU Affero General Public License version 3
 ;;;; as published by the Free Software Foundation.
 ;;;;
-;;;; ulake-core is distributed in the hope that it will be useful,
+;;;; comlake-core is distributed in the hope that it will be useful,
 ;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;;;; GNU Affero General Public License for more details.
 ;;;;
 ;;;; You should have received a copy of the GNU Affero General Public License
-;;;; along with Acanban.  If not, see <https://www.gnu.org/licenses/>.
+;;;; along with comlake-core.  If not, see <https://www.gnu.org/licenses/>.
 
-(ns ulake-core.main
+(ns comlake-core.main
   (:gen-class)
   (:require [aleph.http :refer [start-server]]
             [clojure.string :refer [starts-with?]]
+            [comlake-core.ipfs :as ipfs]
             [rethinkdb.query :as r]
-            [ring.middleware.reload :refer [wrap-reload]]
-            [ulake-core.ipfs :as ipfs]))
+            [ring.middleware.reload :refer [wrap-reload]]))
 
+;;; FIXME: prefix should be x-comlake-
 (def header-prefix "content-")
 
 (defn ingest
@@ -34,7 +35,7 @@
                            :when (starts-with? k header-prefix)]
                        [(subs k (count header-prefix)) v]))]
     (with-open [conn (r/connect :host "127.0.0.1" :port 28015 :db "test")]
-      (-> (r/table "ulake")
+      (-> (r/table "comlake")
           (r/insert object)
           (r/run conn)))
     {:status 200
@@ -51,9 +52,9 @@
 (defn -main [& args]
   ;; TODO: Abstract this away
   (with-open [conn (r/connect :host "127.0.0.1" :port 28015 :db "test")]
-    (when (some #{"ulake"} (r/run (r/table-list) conn))
-      (r/run (r/table-drop "ulake") conn))
-    (r/run (r/table-create "ulake") conn))
+    (when (some #{"comlake"} (r/run (r/table-list) conn))
+      (r/run (r/table-drop "comlake") conn))
+    (r/run (r/table-create "comlake") conn))
   (start-server
     (if (some #{"reload"} args)
       (wrap-reload #'route)

@@ -1,4 +1,4 @@
-# ulake-core
+# ComLake Core
 
 USTH data lake core
 

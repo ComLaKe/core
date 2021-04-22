@@ -11,8 +11,8 @@ sources:
   - https://git.sr.ht/~cnx/ulake-core
 tasks:
   - ipfs: |
-      wget https://dist.ipfs.io/go-ipfs/v0.8.0/go-ipfs_v0.8.0_linux-amd64.tar.gz
-      tar -xvzf go-ipfs_v0.8.0_linux-amd64.tar.gz
+      curl https://dist.ipfs.io/go-ipfs/v0.8.0/go-ipfs_v0.8.0_linux-amd64.tar.gz |
+        tar xvz
       sudo go-ipfs/install.sh
       rm -r go-ipfs*
       ipfs init
