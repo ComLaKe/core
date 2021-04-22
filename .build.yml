@@ -19,5 +19,5 @@ tasks:
       ipfs init
   - build: |
       ipfs daemon &
-      cd ulake-core
-      lein uberjar
+      cd core
+      lein compile
