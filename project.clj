@@ -13,4 +13,5 @@
                  [ring/ring-jetty-adapter "1.9.2"]]
   :main ^:skip-aot comlake-core.main
   :target-path "target/%s"
-  :profiles {:uberjar {:aot :all}})
+  :profiles {:uberjar {:aot :all}}
+  :plugins [[lein-codox "0.10.7"]])

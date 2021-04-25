@@ -92,8 +92,8 @@
   "Route HTTP endpoints."
   [request]
   (case [(:request-method request) (:uri request)]
-    [:post "/ingest"] (ingest request)
-    [:post "/filter"] (search request)
+    [:post "/add"] (ingest request)
+    [:post "/find"] (search request)
     {:status 400
      :headers {:content-type "text/plain"}
      :body "unsupported\n"}))
