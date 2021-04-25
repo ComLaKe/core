@@ -18,6 +18,12 @@ jobs:
         sudo apt-get update
         sudo apt-get -y install leiningen
 
+    - name: Set up IPFS
+      uses: ibnesayeed/setup-ipfs@master
+      with:
+        ipfs_version: 0.8
+        run_daemon: true
+
     - name: Generate documentation
       run: lein codox
 
