@@ -20,7 +20,8 @@
   (:require [aleph.http :refer [start-server]]
             [clojure.data.json :as json]
             [clojure.java.io :refer [reader]]
-            [clojure.string :refer [starts-with?]]
+            [clojure.set :refer [subset?]]
+            [clojure.string :refer [split starts-with?]]
             [comlake-core.ipfs :as ipfs]
             [comlake-core.ast :as ast]
             [rethinkdb.query :as r]
@@ -29,21 +30,33 @@
 (def header-prefix "x-comlake-")
 
 (defn ingest
-  "Ingest the data and return appropriate response."
-  [request]
-  ;; FIXME: header should be checked before streaming file to IPFS
-  (let [cid (ipfs/add (:body request)) ; TODO: handle exceptions
-        object (into {"cid" cid}
-                     (for [[k v] (:headers request)
-                           :when (starts-with? k header-prefix)]
-                       [(subs k (count header-prefix)) v]))]
-    (with-open [conn (r/connect :host "127.0.0.1" :port 28015 :db "test")]
-      (-> (r/table "comlake")
-          (r/insert object)
-          (r/run conn)))
-    {:status 200
-     :headers {:content-type "text/plain"}
-     :body cid}))
+  "Ingest data from the given request and return appropriate response."
+  [headers body]
+  (let [kv (reduce-kv
+             (fn [latest k v]
+               (let [add (partial assoc latest)]
+                 (case k
+                   "content-type" (add "type" v)
+                   "content-length" (add "length" (bigint v))
+                   "x-comlake-length" latest ; disarm footgun
+                   ;; Should we trim whitespaces?
+                   "x-comlake-topics" (add "topics" (split v #"\s*,\s*"))
+                   (if (starts-with? k header-prefix)
+                       (add (subs k (count header-prefix)) v)
+                       latest))))
+             {} headers)]
+    (if (subset? #{"length" "type" "name" "source" "topics"} kv)
+      (let [cid (ipfs/add body)] ; TODO: handle exceptions
+        (with-open [conn (r/connect :host "127.0.0.1" :port 28015 :db "test")]
+          (-> (r/table "comlake")
+              (r/insert (assoc kv :cid cid))
+              (r/run conn)))
+        {:status 200
+         :headers {:content-type "text/plain"}
+         :body cid})
+      {:status 400
+       :headers {:content-type "text/plain"}
+       :body "missing metadata fields\n"})))
 
 (defn search
   "Return query result as a HTTP response."
@@ -68,7 +81,7 @@
   "Route HTTP endpoints."
   [request]
   (case [(:request-method request) (:uri request)]
-    [:post "/add"] (ingest request)
+    [:post "/add"] (ingest (:headers request) (:body request))
     [:post "/find"] (search request)
     {:status 400
      :headers {:content-type "text/plain"}

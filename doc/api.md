@@ -23,7 +23,7 @@ The following headers are required:
 * X-Comlake-Source: Original source of the data
 * X-Comlake-Topics: Comma-separated list of classifiers
 
-All other headers prefixed by `X-Comlake-` shall also be parsed
+All other headers prefixed by `X-Comlake-` shall also be parsed as-is
 as dynamic metadata.
 
 #### Example
