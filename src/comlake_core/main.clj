@@ -62,8 +62,7 @@
 (defn search
   "Return query result as a HTTP response."
   [raw-ast]
-  ;; FIXME: respond with a 400 upon a malformed query
-  (let [parsed (r/fn [row] (qast/parse row (json/read (reader raw-ast))))]
+  (if-let [query (qast/parse (json/read (reader raw-ast)))]
     {:status 200
      :headers {:content-type "application/json"}
      :body (json/write-str
@@ -71,8 +70,11 @@
                                          :port 28015
                                          :db "test")]
                (-> (r/table "comlake")
-                   (r/filter parsed)
-                   (r/run conn))))}))
+                   (r/filter (r/fn [row] (query row)))
+                   (r/run conn))))}
+    {:status 400
+     :headers {:content-type "text/plain"}
+     :body "malformed query\n"}))
 
 (defn route
   "Route HTTP endpoints."
@@ -80,7 +82,7 @@
   (case [(:request-method request) (:uri request)]
     [:post "/add"] (ingest (:headers request) (:body request))
     [:post "/find"] (search (:body request))
-    {:status 400
+    {:status 404
      :headers {:content-type "text/plain"}
      :body "unsupported\n"}))
 
