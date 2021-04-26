@@ -51,7 +51,7 @@ is basically GNU with Linux added, or GNU/Linux.  All the so-called "Linux"
 distributions are really distributions of GNU/Linux.
 </code></pre>
 <h3><a href="#response" name="response"></a>Response</h3>
-<p>The server respond with the content ID of the data.</p>
+<p>The server must respond with the content ID of the data.</p>
 <h4><a href="#example" name="example"></a>Example</h4>
 <pre><code class="http">HTTP/1.1 200 OK
 Content-Type: text/plain
@@ -60,4 +60,28 @@ Content-Length: 46
 QmbwXK2Wg6npoAusr9MkSduuAViS6dxEQBNzqoixanVtj5
 </code></pre>
 <h2><a href="#post-find" name="post-find"></a>POST /find</h2>
+<p>Find the data according to the given predicate.</p>
+<h3><a href="#request" name="request"></a>Request</h3>
+<p>The predicate must be a valid <a href="qast.html">query AST</a>, represented in JSON.</p>
+<h4><a href="#example" name="example"></a>Example</h4>
+<p>Find all data smaller than 4 KiB:</p>
+<pre><code class="http">POST /find HTTP/1.1
+Accept: application/json
+Content-Type: application/json
+Content-Length: 27
+
+["&lt;", [".", "length"], 4096]
+</code></pre>
+<h3><a href="#response" name="response"></a>Response</h3>
+<p>The server must respond in JSON with an array of objects, each representing a datum.</p>
+<h4><a href="#example" name="example"></a>Example</h4>
+<pre><code class="http">HTTP/1.1 200 OK
+Content-Type: application/json
+Server: Aleph/0.4.4
+Connection: Keep-Alive
+Date: Mon, 26 Apr 2021 09:23:09 GMT
+content-length: 314
+
+[{"cid":"QmbwXK2Wg6npoAusr9MkSduuAViS6dxEQBNzqoixanVtj5","id":"589836fe-c2f7-4d21-a521-688439bc74a4","language":"English","length":1284,"name":"Interjection","source":"https:\/\/wiki.installgentoo.com\/index.php\/Interjection","topics":["Natural language","copypasta"],"type":"application\/x-www-form-urlencoded"}]
+</code></pre>
 <h2><a href="#get-get-" name="get-get-"></a>GET /get/<path></path></h2></div></div></div></body></html>
