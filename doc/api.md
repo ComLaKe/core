@@ -61,7 +61,7 @@ distributions are really distributions of GNU/Linux.
 
 ### Response
 
-The server respond with the content ID of the data.
+The server must respond with the content ID of the data.
 
 #### Example
 
@@ -74,5 +74,42 @@ QmbwXK2Wg6npoAusr9MkSduuAViS6dxEQBNzqoixanVtj5
 ```
 
 ## POST /find
+
+Find the data according to the given predicate.
+
+### Request
+
+The predicate must be a valid [query AST](qast.md), represented in JSON.
+
+#### Example
+
+Find all data smaller than 4 KiB:
+
+```http
+POST /find HTTP/1.1
+Accept: application/json
+Content-Type: application/json
+Content-Length: 27
+
+["<", [".", "length"], 4096]
+```
+
+### Response
+
+The server must respond in JSON with an array of objects,
+each representing a datum.
+
+#### Example
+
+```http
+HTTP/1.1 200 OK
+Content-Type: application/json
+Server: Aleph/0.4.4
+Connection: Keep-Alive
+Date: Mon, 26 Apr 2021 09:23:09 GMT
+content-length: 314
+
+[{"cid":"QmbwXK2Wg6npoAusr9MkSduuAViS6dxEQBNzqoixanVtj5","id":"589836fe-c2f7-4d21-a521-688439bc74a4","language":"English","length":1284,"name":"Interjection","source":"https:\/\/wiki.installgentoo.com\/index.php\/Interjection","topics":["Natural language","copypasta"],"type":"application\/x-www-form-urlencoded"}]
+```
 
 ## GET /get/<path>

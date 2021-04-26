@@ -35,7 +35,7 @@
    "%" [(ignore-first r/mod) #(= % 2)]
    "&" [(ignore-first r/and) any?]
    "|" [(ignore-first r/or) any?]
-   "==" [(ignore-first r/eq) any?]
+   "==" [(ignore-first r/eq) #(> % 1)]
    "!=" [(ignore-first r/ne) #(> % 1)]
    ">" [(ignore-first r/gt) #(> % 1)]
    ">=" [(ignore-first r/ge) #(> % 1)]
