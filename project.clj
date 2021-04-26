@@ -1,7 +1,7 @@
 (defproject comlake-core "0.1.0-SNAPSHOT"
   :description "USTH data lake core"
   :url "https://github.com/ComLake/core"
-  :license {:name "GNU Affero General Public License v3.0"
+  :license {:name "GNU Affero General Public License 3.0"
             :url "https://www.gnu.org/licenses/agpl-3.0"}
   :repositories [["jitpack" "https://jitpack.io"]]
   :dependencies [[aleph "0.4.6"]
@@ -14,4 +14,6 @@
   :main ^:skip-aot comlake-core.main
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all}}
-  :plugins [[lein-codox "0.10.7"]])
+  :plugins [[lein-codox "0.10.7"]]
+  :codox {:source-uri ~(str "https://github.com/ComLake/core"
+                            "/blob/{git-commit}/{filepath}#L{line}")})

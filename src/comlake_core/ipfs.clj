@@ -19,10 +19,10 @@
   "IPFS wrapper."
   (:import (io.ipfs.api IPFS NamedStreamable$InputStreamWrapper)))
 
-(def ipfs (IPFS. "/ip4/127.0.0.1/tcp/5001"))
+(def ipfs (memoize #(IPFS. "/ip4/127.0.0.1/tcp/5001")))
 
 (defn add
   "Add the content of the given stream to IPFS and return the CID."
   [istream]
-  (-> (->> istream NamedStreamable$InputStreamWrapper. (.add ipfs))
+  (-> (->> istream NamedStreamable$InputStreamWrapper. (.add (ipfs)))
       (.get 0) .-hash str))

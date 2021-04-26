@@ -1,32 +1,20 @@
 name: Deploy documentation
-
 on:
   push:
     branches:
     - main
-
 jobs:
   docs:
     runs-on: ubuntu-latest
-
     steps:
     - name: Checkout
       uses: actions/checkout@v2
-
     - name: Install dependencies
       run: |
         sudo apt-get update
         sudo apt-get -y install leiningen
-
-    - name: Set up IPFS
-      uses: ibnesayeed/setup-ipfs@master
-      with:
-        ipfs_version: 0.8
-        run_daemon: true
-
     - name: Generate documentation
       run: lein codox
-
     - name: Deploy site
       uses: peaceiris/actions-gh-pages@v3
       with:
