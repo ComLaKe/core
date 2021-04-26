@@ -16,7 +16,7 @@
 ;;;; along with comlake-core.  If not, see <https://www.gnu.org/licenses/>.
 
 (ns comlake-core.ipfs
-  (:gen-class)
+  "IPFS wrapper."
   (:import (io.ipfs.api IPFS NamedStreamable$InputStreamWrapper)))
 
 (def ipfs (IPFS. "/ip4/127.0.0.1/tcp/5001"))
