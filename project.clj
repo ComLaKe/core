@@ -14,6 +14,7 @@
   :main ^:skip-aot comlake-core.main
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all}}
-  :plugins [[lein-codox "0.10.7"]]
+  :plugins [[lein-cloverage "1.2.2"]
+            [lein-codox "0.10.7"]]
   :codox {:source-uri ~(str "https://github.com/ComLake/core"
                             "/blob/{git-commit}/{filepath}#L{line}")})

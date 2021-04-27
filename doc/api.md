@@ -89,7 +89,6 @@ Find all data smaller than 4 KiB:
 POST /find HTTP/1.1
 Accept: application/json
 Content-Type: application/json
-Content-Length: 27
 
 ["<", [".", "length"], 4096]
 ```
@@ -104,10 +103,6 @@ each representing a datum.
 ```http
 HTTP/1.1 200 OK
 Content-Type: application/json
-Server: Aleph/0.4.4
-Connection: Keep-Alive
-Date: Mon, 26 Apr 2021 09:23:09 GMT
-content-length: 314
 
 [{"cid":"QmbwXK2Wg6npoAusr9MkSduuAViS6dxEQBNzqoixanVtj5","id":"589836fe-c2f7-4d21-a521-688439bc74a4","language":"English","length":1284,"name":"Interjection","source":"https:\/\/wiki.installgentoo.com\/index.php\/Interjection","topics":["Natural language","copypasta"],"type":"application\/x-www-form-urlencoded"}]
 ```

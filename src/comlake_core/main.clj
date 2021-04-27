@@ -1,7 +1,7 @@
 ;;;; Entry point
 ;;;; Copyright (C) 2021  Nguyễn Gia Phong
 ;;;;
-;;;; This file is part of comlake-core
+;;;; This file is part of comlake-core.
 ;;;;
 ;;;; comlake-core is free software: you can redistribute it and/or modify
 ;;;; it under the terms of the GNU Affero General Public License version 3
@@ -47,7 +47,7 @@
                        latest))))
              {} headers)]
     (if (subset? #{"length" "type" "name" "source" "topics"} kv)
-      (let [cid (ipfs/add body)] ; TODO: handle exceptions
+      (let [cid (ipfs/add body)] ; TODO: handle exceptions and size mismatch
         (with-open [conn (r/connect :host "127.0.0.1" :port 28015 :db "test")]
           (-> (r/table "comlake")
               (r/insert (assoc kv "cid" cid))

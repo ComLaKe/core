@@ -1,7 +1,7 @@
 ;;;; Query abstract syntax tree parser
 ;;;; Copyright (C) 2021  Nguyễn Gia Phong
 ;;;;
-;;;; This file is part of comlake-core
+;;;; This file is part of comlake-core.
 ;;;;
 ;;;; comlake-core is free software: you can redistribute it and/or modify
 ;;;; it under the terms of the GNU Affero General Public License version 3
