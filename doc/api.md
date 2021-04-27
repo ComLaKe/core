@@ -30,7 +30,7 @@ as dynamic metadata.
 
 ```http
 POST /add HTTP/1.1
-Accept: text/plain
+Accept: application/json
 Content-Length: 1284
 Content-Type: text/plain
 X-Comlake-Name: Interjection
@@ -61,16 +61,16 @@ distributions are really distributions of GNU/Linux.
 
 ### Response
 
-The server must respond with the content ID of the data.
+The call to this endpoint will return a body in JSON containing either the `cid`
+(content ID) of the data on success or the `error` message upon errors.
 
 #### Example
 
 ```http
 HTTP/1.1 200 OK
-Content-Type: text/plain
-Content-Length: 46
+Content-Type: application/json
 
-QmbwXK2Wg6npoAusr9MkSduuAViS6dxEQBNzqoixanVtj5
+{"cid":"QmbwXK2Wg6npoAusr9MkSduuAViS6dxEQBNzqoixanVtj5"}
 ```
 
 ## POST /find

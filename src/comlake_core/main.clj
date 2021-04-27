@@ -50,14 +50,14 @@
       (let [cid (ipfs/add body)] ; TODO: handle exceptions
         (with-open [conn (r/connect :host "127.0.0.1" :port 28015 :db "test")]
           (-> (r/table "comlake")
-              (r/insert (assoc kv :cid cid))
+              (r/insert (assoc kv "cid" cid))
               (r/run conn)))
         {:status 200
-         :headers {:content-type "text/plain"}
-         :body cid})
+         :headers {:content-type "application/json"}
+         :body (json/write-str {"cid" cid})})
       {:status 400
-       :headers {:content-type "text/plain"}
-       :body "missing metadata fields\n"})))
+       :headers {:content-type "application/json"}
+       :body (json/write-str {"error" "missing metadata fields"})})))
 
 (defn search
   "Return query result as a HTTP response."
@@ -73,8 +73,8 @@
                    (r/filter (r/fn [row] (query row)))
                    (r/run conn))))}
     {:status 400
-     :headers {:content-type "text/plain"}
-     :body "malformed query\n"}))
+     :headers {:content-type "application/json"}
+     :body (json/write-str {"error" "malformed query"})}))
 
 (defn route
   "Route HTTP endpoints."

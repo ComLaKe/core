@@ -29,7 +29,7 @@ The following operators are currently supported:
 Behaviors involving JSON `null` is deliberately left undefined.
 The reference implementation considers queries with operations
 containing `null`'s as malformed, but does not complain about
-the appearance of `null` elsewhere; however API users must **not**
-rely on this.
+the appearance of `null` elsewhere; however core API users
+must **not** rely on such implementation details.
 
 [sexpr]: https://en.wikipedia.org/wiki/S-expression
