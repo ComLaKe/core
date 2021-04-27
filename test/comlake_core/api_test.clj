@@ -23,7 +23,8 @@
             [clojure.data.json :as json]
             [clojure.test :refer :all]
             [clojure.java.io :refer [file input-stream reader resource]]
-            [comlake-core.main :refer [route]]))
+            [comlake-core.main :refer [route]]
+            [comlake-core.rethink :as rethink]))
 
 (def port 42069)
 (def json-body (comp json/read reader :body))
@@ -37,6 +38,8 @@
   "Manage a test server for the code in body."
   [& body]
   `(let [server# (http/start-server route {:port port})]
+     ;; TODO: add mock data
+     (rethink/clear rethink/table)
      (try ~@body
           (finally (.close server#)
                    (wait-for-close server#)))))

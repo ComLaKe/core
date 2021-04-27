@@ -24,6 +24,7 @@
             [clojure.set :refer [subset?]]
             [clojure.string :refer [split starts-with?]]
             [comlake-core.ipfs :as ipfs]
+            [comlake-core.rethink :as rethink]
             [comlake-core.qast :as qast]
             [rethinkdb.query :as r]
             [ring.middleware.reload :refer [wrap-reload]]))
@@ -48,10 +49,8 @@
              {} headers)]
     (if (subset? #{"length" "type" "name" "source" "topics"} kv)
       (let [cid (ipfs/add body)] ; TODO: handle exceptions and size mismatch
-        (with-open [conn (r/connect :host "127.0.0.1" :port 28015 :db "test")]
-          (-> (r/table "comlake")
-              (r/insert (assoc kv "cid" cid))
-              (r/run conn)))
+        (rethink/run (r/insert (r/table rethink/table)
+                               (assoc kv "cid" cid)))
         {:status 200
          :headers {:content-type "application/json"}
          :body (json/write-str {"cid" cid})})
@@ -66,12 +65,8 @@
     {:status 200
      :headers {:content-type "application/json"}
      :body (json/write-str
-             (with-open [conn (r/connect :host "127.0.0.1"
-                                         :port 28015
-                                         :db "test")]
-               (-> (r/table "comlake")
-                   (r/filter (r/fn [row] (query row)))
-                   (r/run conn))))}
+             (rethink/run (r/filter (r/table rethink/table)
+                                    (r/fn [row] (query row)))))}
     {:status 400
      :headers {:content-type "application/json"}
      :body (json/write-str {"error" "malformed query"})}))
@@ -87,11 +82,7 @@
      :body "unsupported\n"}))
 
 (defn -main [& args]
-  ;; TODO: Abstract this away
-  (with-open [conn (r/connect :host "127.0.0.1" :port 28015 :db "test")]
-    (when (some #{"comlake"} (r/run (r/table-list) conn))
-      (r/run (r/table-drop "comlake") conn))
-    (r/run (r/table-create "comlake") conn))
+  (rethink/clear rethink/table)
   (start-server
     (if (some #{"reload"} args)
       (wrap-reload #'route)
