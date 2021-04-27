@@ -22,7 +22,7 @@
 <p>All other headers prefixed by <code>X-Comlake-</code> shall also be parsed as-is as dynamic metadata.</p>
 <h4><a href="#example" name="example"></a>Example</h4>
 <pre><code class="http">POST /add HTTP/1.1
-Accept: text/plain
+Accept: application/json
 Content-Length: 1284
 Content-Type: text/plain
 X-Comlake-Name: Interjection
@@ -51,13 +51,12 @@ is basically GNU with Linux added, or GNU/Linux.  All the so-called "Linux"
 distributions are really distributions of GNU/Linux.
 </code></pre>
 <h3><a href="#response" name="response"></a>Response</h3>
-<p>The server must respond with the content ID of the data.</p>
+<p>The call to this endpoint will return a body in JSON containing either the <code>cid</code> (content ID) of the data on success or the <code>error</code> message upon errors.</p>
 <h4><a href="#example" name="example"></a>Example</h4>
 <pre><code class="http">HTTP/1.1 200 OK
-Content-Type: text/plain
-Content-Length: 46
+Content-Type: application/json
 
-QmbwXK2Wg6npoAusr9MkSduuAViS6dxEQBNzqoixanVtj5
+{"cid":"QmbwXK2Wg6npoAusr9MkSduuAViS6dxEQBNzqoixanVtj5"}
 </code></pre>
 <h2><a href="#post-find" name="post-find"></a>POST /find</h2>
 <p>Find the data according to the given predicate.</p>
