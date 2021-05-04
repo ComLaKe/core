@@ -29,6 +29,13 @@
             [rethinkdb.query :as r]
             [ring.middleware.reload :refer [wrap-reload]]))
 
+(defn error-response
+  "Wrap given error string in a Ring JSON response."
+  ([error status] {:status status
+                   :headers {:content-type "application/json"}
+                   :body (json/write-str {"error" error})})
+  ([error] (error-response error 400)))
+
 (def header-prefix "x-comlake-")
 
 (defn ingest
@@ -54,9 +61,7 @@
         {:status 200
          :headers {:content-type "application/json"}
          :body (json/write-str {"cid" cid})})
-      {:status 400
-       :headers {:content-type "application/json"}
-       :body (json/write-str {"error" "missing metadata fields"})})))
+      (error-response "missing metadata fields"))))
 
 (defn search
   "Return query result as a HTTP response."
@@ -67,19 +72,37 @@
      :body (json/write-str
              (rethink/run (r/filter (r/table rethink/table)
                                     (r/fn [row] (query row)))))}
-    {:status 400
-     :headers {:content-type "application/json"}
-     :body (json/write-str {"error" "malformed query"})}))
+    (error-response "malformed query")))
+
+(defn stream-response
+  "Wrap given input stream in a Ring response."
+  [body]
+  {:status 200
+   :headers {:content-type "application/octet-stream"}
+   :body body})
+
+(defn forward
+  "Forward data from underlying distributed filesystem as a HTTP response."
+  [uri]
+  (let [[dfs cid] (nthrest (split uri #"/") 2)]
+    (if (every? some? [dfs cid])
+      (cond
+        (= dfs "ipfs") (if-let [body (ipfs/cat cid)]
+                         (stream-response body)
+                         (error-response "content not found" 404)))
+      (error-response "malformed content identifier"))))
 
 (defn route
   "Route HTTP endpoints."
   [request]
-  (case [(:request-method request) (:uri request)]
-    [:post "/add"] (ingest (:headers request) (:body request))
-    [:post "/find"] (search (:body request))
-    {:status 404
-     :headers {:content-type "text/plain"}
-     :body "unsupported\n"}))
+  (let [method (:request-method request)
+        uri (:uri request)]
+    (cond
+      (and (= method :post) (= uri "/add")) (ingest (:headers request)
+                                                    (:body request))
+      (and (= method :post) (= uri "/find")) (search (:body request))
+      (and (= method :get) (starts-with? uri "/get/")) (forward uri)
+      :else (error-response "unsupported" 404))))
 
 (defn -main [& args]
   (rethink/clear rethink/table)

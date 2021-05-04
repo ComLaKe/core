@@ -17,12 +17,20 @@
 
 (ns comlake-core.ipfs
   "IPFS wrapper."
-  (:import (io.ipfs.api IPFS NamedStreamable$InputStreamWrapper)))
+  (:import (io.ipfs.api IPFS NamedStreamable$InputStreamWrapper)
+           (io.ipfs.multihash Multihash)))
 
 (def ipfs (memoize #(IPFS. "/ip4/127.0.0.1/tcp/5001")))
 
 (defn add
   "Add the content of the given stream to IPFS and return the CID."
   [istream]
-  (-> (->> istream NamedStreamable$InputStreamWrapper. (.add (ipfs)))
+  (-> (->> istream NamedStreamable$InputStreamWrapper. (.add ^IPFS (ipfs)))
       (.get 0) .-hash str))
+
+(defn cat
+  "Stream the IPFS file if given CIDv0 is valid, otherwise return nil."
+  [cid]
+  (let [multihash (try (Multihash/fromBase58 cid)
+                       (catch IllegalStateException e nil))]
+    (when multihash (.catStream ^IPFS (ipfs) multihash))))

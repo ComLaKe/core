@@ -17,7 +17,7 @@ tasks:
       sudo go-ipfs/install.sh
       rm -r go-ipfs
       ipfs init
-  - build: |
+  - test: |
       rethinkdb --no-http-admin &
       ipfs daemon &
       cd core

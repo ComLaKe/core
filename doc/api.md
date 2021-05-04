@@ -107,4 +107,52 @@ Content-Type: application/json
 [{"cid":"QmbwXK2Wg6npoAusr9MkSduuAViS6dxEQBNzqoixanVtj5","id":"589836fe-c2f7-4d21-a521-688439bc74a4","language":"English","length":1284,"name":"Interjection","source":"https:\/\/wiki.installgentoo.com\/index.php\/Interjection","topics":["Natural language","copypasta"],"type":"application\/x-www-form-urlencoded"}]
 ```
 
-## GET /get/<path>
+## GET /get/{dfs}/{cid}
+
+Stream content from underlying file system.
+
+### Request
+
+In the URI, `dfs` specifies the distributed file system
+and `cid` is the content identifier of the wanted file.
+
+#### Example
+
+Stream the file of content ID `QmbwXK2Wg6npoAusr9MkSduuAViS6dxEQBNzqoixanVtj5`
+from IPFS:
+
+```http
+GET /get/ipfs/QmbwXK2Wg6npoAusr9MkSduuAViS6dxEQBNzqoixanVtj5
+Accept: application/octet-stream
+```
+
+### Response
+
+The server should respond with a octet stream, transferred in chunks.
+
+#### Example
+
+```http
+HTTP/1.1 200 OK
+Content-Type: application/octet-stream
+
+I'd just like to interject for a moment.  What you're referring to as Linux,
+is in fact, GNU/Linux, or as I've recently taken to calling it, GNU plus Linux.
+Linux is not an operating system unto itself, but rather another free component
+of a fully functioning GNU system made useful by the GNU corelibs, shell
+utilities and vital system components comprising a full OS as defined by POSIX.
+
+Many computer users run a modified version of the GNU system every day,
+without realizing it.  Through a peculiar turn of events, the version of GNU
+which is widely used today is often called "Linux", and many of its users are
+not aware that it is basically the GNU system, developed by the GNU Project.
+
+There really is a Linux, and these people are using it, but it is just a
+part of the system they use.  Linux is the kernel: the program in the system
+that allocates the machine's resources to the other programs that you run.
+The kernel is an essential part of an operating system, but useless by itself;
+it can only function in the context of a complete operating system.  Linux is
+normally used in combination with the GNU operating system: the whole system
+is basically GNU with Linux added, or GNU/Linux.  All the so-called "Linux"
+distributions are really distributions of GNU/Linux.
+```
