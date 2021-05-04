@@ -23,10 +23,8 @@
             [clojure.java.io :refer [reader]]
             [clojure.set :refer [subset?]]
             [clojure.string :refer [split starts-with?]]
-            [comlake-core.ipfs :as ipfs]
-            [comlake-core.rethink :as rethink]
-            [comlake-core.qast :as qast]
-            [rethinkdb.query :as r]
+            [comlake-core.ipfs :as fs]
+            [comlake-core.rethink :as db]
             [ring.middleware.reload :refer [wrap-reload]]))
 
 (defn error-response
@@ -55,9 +53,8 @@
                        latest))))
              {} headers)]
     (if (subset? #{"length" "type" "name" "source" "topics"} kv)
-      (let [cid (ipfs/add body)] ; TODO: handle exceptions and size mismatch
-        (rethink/run (r/insert (r/table rethink/table)
-                               (assoc kv "cid" cid)))
+      (let [cid (fs/add body)] ; TODO: handle exceptions and size mismatch
+        (db/insert (assoc kv "cid" cid))
         {:status 200
          :headers {:content-type "application/json"}
          :body (json/write-str {"cid" cid})})
@@ -66,18 +63,16 @@
 (defn search
   "Return query result as a HTTP response."
   [raw-ast]
-  (if-let [query (qast/parse (json/read (reader raw-ast)))]
+  (if-let [query (db/parse-qast (json/read (reader raw-ast)))]
     {:status 200
      :headers {:content-type "application/json"}
-     :body (json/write-str
-             (rethink/run (r/filter (r/table rethink/table)
-                                    (r/fn [row] (query row)))))}
+     :body (json/write-str (db/search query))}
     (error-response "malformed query")))
 
 (defn forward
   "Forward content from underlying distributed filesystem as a HTTP response."
   [cid]
-  (if-let [body (ipfs/cat cid)]
+  (if-let [body (fs/fetch cid)]
     {:status 200
      :headers {:content-type "application/octet-stream"}
      :body body}
@@ -96,7 +91,7 @@
       :else (error-response "unsupported" 404))))
 
 (defn -main [& args]
-  (rethink/clear rethink/table)
+  (db/clear)
   (start-server
     (if (some #{"reload"} args)
       (wrap-reload #'route)

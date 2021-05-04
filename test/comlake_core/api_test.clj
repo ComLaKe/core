@@ -41,7 +41,7 @@
   [& body]
   `(let [server# (http/start-server route {:port port})]
      ;; TODO: add mock data
-     (rethink/clear rethink/table)
+     (rethink/clear)
      (try ~@body
           (finally (.close server#)
                    (wait-for-close server#)))))
@@ -99,7 +99,8 @@
                  (= (slurp (:body response))
                     (slurp interjection))))))
     (testing "not found"
-      (let [response @(http/get (make-url "/get/this-cid-does-not-exist"))]
+      (let [response @(http/get (make-url "/get/this-cid-does-not-exist")
+                                {:throw-exceptions? false})]
         (is (and (= 404 (:status response))
                  (= "content not found"
                     (get (json-body response) "error"))))))))

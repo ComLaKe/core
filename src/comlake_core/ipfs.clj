@@ -28,7 +28,7 @@
   (-> (->> istream NamedStreamable$InputStreamWrapper. (.add ^IPFS (ipfs)))
       (.get 0) .-hash str))
 
-(defn cat
+(defn fetch
   "Stream the IPFS file if given CIDv0 is valid, otherwise return nil."
   [cid]
   (let [multihash (try (Multihash/fromBase58 cid)
