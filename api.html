@@ -71,24 +71,23 @@ Content-Type: application/json
 ["&lt;", [".", "length"], 4096]
 </code></pre>
 <h3><a href="#response" name="response"></a>Response</h3>
-<p>The server must respond in JSON with an array of objects, each representing a datum.</p>
+<p>The server must respond in JSON with an array of objects, each representing a datum. In case of an error, the response would be an JSON object with an <code>error</code> field.</p>
 <h4><a href="#example" name="example"></a>Example</h4>
 <pre><code class="http">HTTP/1.1 200 OK
 Content-Type: application/json
 
 [{"cid":"QmbwXK2Wg6npoAusr9MkSduuAViS6dxEQBNzqoixanVtj5","id":"589836fe-c2f7-4d21-a521-688439bc74a4","language":"English","length":1284,"name":"Interjection","source":"https:\/\/wiki.installgentoo.com\/index.php\/Interjection","topics":["Natural language","copypasta"],"type":"application\/x-www-form-urlencoded"}]
 </code></pre>
-<h2><a href="#get-get-dfs-cid-" name="get-get-dfs-cid-"></a>GET /get/{dfs}/{cid}</h2>
+<h2><a href="#get-get-cid-" name="get-get-cid-"></a>GET /get/{cid}</h2>
 <p>Stream content from underlying file system.</p>
 <h3><a href="#request" name="request"></a>Request</h3>
-<p>In the URI, <code>dfs</code> specifies the distributed file system and <code>cid</code> is the content identifier of the wanted file.</p>
+<p>In the URI, <code>cid</code> specifies the content identifier of the wanted file.</p>
 <h4><a href="#example" name="example"></a>Example</h4>
-<p>Stream the file of content ID <code>QmbwXK2Wg6npoAusr9MkSduuAViS6dxEQBNzqoixanVtj5</code> from IPFS:</p>
-<pre><code class="http">GET /get/ipfs/QmbwXK2Wg6npoAusr9MkSduuAViS6dxEQBNzqoixanVtj5
-Accept: application/octet-stream
+<p>Stream the file of content ID <code>QmbwXK2Wg6npoAusr9MkSduuAViS6dxEQBNzqoixanVtj5</code>:</p>
+<pre><code class="http">GET /get/QmbwXK2Wg6npoAusr9MkSduuAViS6dxEQBNzqoixanVtj5
 </code></pre>
 <h3><a href="#response" name="response"></a>Response</h3>
-<p>The server should respond with a octet stream, transferred in chunks.</p>
+<p>The server should respond with a octet stream, transferred in chunks. In case of an error, the response would be an JSON object with field <code>error</code>.</p>
 <h4><a href="#example" name="example"></a>Example</h4>
 <pre><code class="http">HTTP/1.1 200 OK
 Content-Type: application/octet-stream
