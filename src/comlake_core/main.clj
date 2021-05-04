@@ -74,23 +74,14 @@
                                     (r/fn [row] (query row)))))}
     (error-response "malformed query")))
 
-(defn stream-response
-  "Wrap given input stream in a Ring response."
-  [body]
-  {:status 200
-   :headers {:content-type "application/octet-stream"}
-   :body body})
-
 (defn forward
-  "Forward data from underlying distributed filesystem as a HTTP response."
-  [uri]
-  (let [[dfs cid] (nthrest (split uri #"/") 2)]
-    (if (every? some? [dfs cid])
-      (cond
-        (= dfs "ipfs") (if-let [body (ipfs/cat cid)]
-                         (stream-response body)
-                         (error-response "content not found" 404)))
-      (error-response "malformed content identifier"))))
+  "Forward content from underlying distributed filesystem as a HTTP response."
+  [cid]
+  (if-let [body (ipfs/cat cid)]
+    {:status 200
+     :headers {:content-type "application/octet-stream"}
+     :body body}
+    (error-response "content not found" 404)))
 
 (defn route
   "Route HTTP endpoints."
@@ -101,7 +92,7 @@
       (and (= method :post) (= uri "/add")) (ingest (:headers request)
                                                     (:body request))
       (and (= method :post) (= uri "/find")) (search (:body request))
-      (and (= method :get) (starts-with? uri "/get/")) (forward uri)
+      (and (= method :get) (starts-with? uri "/get/")) (forward (subs uri 5))
       :else (error-response "unsupported" 404))))
 
 (defn -main [& args]

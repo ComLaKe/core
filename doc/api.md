@@ -96,7 +96,8 @@ Content-Type: application/json
 ### Response
 
 The server must respond in JSON with an array of objects,
-each representing a datum.
+each representing a datum.  In case of an error, the response
+would be an JSON object with an `error` field.
 
 #### Example
 
@@ -107,28 +108,26 @@ Content-Type: application/json
 [{"cid":"QmbwXK2Wg6npoAusr9MkSduuAViS6dxEQBNzqoixanVtj5","id":"589836fe-c2f7-4d21-a521-688439bc74a4","language":"English","length":1284,"name":"Interjection","source":"https:\/\/wiki.installgentoo.com\/index.php\/Interjection","topics":["Natural language","copypasta"],"type":"application\/x-www-form-urlencoded"}]
 ```
 
-## GET /get/{dfs}/{cid}
+## GET /get/{cid}
 
 Stream content from underlying file system.
 
 ### Request
 
-In the URI, `dfs` specifies the distributed file system
-and `cid` is the content identifier of the wanted file.
+In the URI, `cid` specifies the content identifier of the wanted file.
 
 #### Example
 
-Stream the file of content ID `QmbwXK2Wg6npoAusr9MkSduuAViS6dxEQBNzqoixanVtj5`
-from IPFS:
+Stream the file of content ID `QmbwXK2Wg6npoAusr9MkSduuAViS6dxEQBNzqoixanVtj5`:
 
 ```http
-GET /get/ipfs/QmbwXK2Wg6npoAusr9MkSduuAViS6dxEQBNzqoixanVtj5
-Accept: application/octet-stream
+GET /get/QmbwXK2Wg6npoAusr9MkSduuAViS6dxEQBNzqoixanVtj5
 ```
 
 ### Response
 
 The server should respond with a octet stream, transferred in chunks.
+In case of an error, the response would be an JSON object with field `error`.
 
 #### Example
 

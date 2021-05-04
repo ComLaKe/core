@@ -27,6 +27,8 @@
             [comlake-core.rethink :as rethink]))
 
 (def port 42069)
+(def interjection (resource "test/Interjection"))
+(def interjection-cid "QmbwXK2Wg6npoAusr9MkSduuAViS6dxEQBNzqoixanVtj5")
 (def json-body (comp json/read reader :body))
 
 (defn make-url
@@ -44,11 +46,10 @@
           (finally (.close server#)
                    (wait-for-close server#)))))
 
-(deftest http-add
+(deftest post-add
   (let [url (make-url "/add")
-        resrc (resource "test/Interjection")
         headers {:accept "application/json"
-                 :content-length (.length (file resrc))
+                 :content-length (.length (file interjection))
                  :content-type "text/plain"
                  :x-comlake-name "Interjection"
                  :x-comlake-source "https://wiki.installgentoo.com"
@@ -56,13 +57,13 @@
                  :x-comlake-language "English"}]
     (with-server
       (testing "success"
-        (with-open [stream (input-stream resrc)]
+        (with-open [stream (input-stream interjection)]
           (let [response @(http/post url {:headers headers :body stream})]
             (is (and (= 200 (:status response))
                      (= "QmbwXK2Wg6npoAusr9MkSduuAViS6dxEQBNzqoixanVtj5"
-                        (-> response json-body (get "cid"))))))))
+                        (get (json-body response) "cid")))))))
       (testing "missing headers"
-        (with-open [stream (input-stream resrc)]
+        (with-open [stream (input-stream interjection)]
           (let [options {:headers (dissoc headers :x-comlake-source)
                          :body stream
                          :throw-exceptions? false}
@@ -71,7 +72,7 @@
                      (= "missing metadata fields"
                         (get (json-body response) "error"))))))))))
 
-(deftest http-find
+(deftest post-find
   (let [url (make-url "/find")
         options {:accept :json
                  :content-type :json
@@ -89,3 +90,16 @@
           (is (and (= 400 (:status response))
                    (= "malformed query"
                       (get (json-body response) "error")))))))))
+
+(deftest get-get
+  (with-server
+    (testing "success"
+      (let [response @(http/get (make-url (str "/get/" interjection-cid)))]
+        (is (and (= 200 (:status response))
+                 (= (slurp (:body response))
+                    (slurp interjection))))))
+    (testing "not found"
+      (let [response @(http/get (make-url "/get/this-cid-does-not-exist"))]
+        (is (and (= 404 (:status response))
+                 (= "content not found"
+                    (get (json-body response) "error"))))))))
