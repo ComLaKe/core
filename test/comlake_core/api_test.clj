@@ -107,7 +107,7 @@
 
 (deftest not-found
   (with-server
-    (let [response @(http/get (make-url "/this/endpoint/is/unsupported"))]
+    (let [response @(http/get (make-url "/this/endpoint/is/unsupported")
+                              {:throw-exceptions? false})]
       (is (and (= 404 (:status response))
-               (= "malformed query"
-                  (get (json-body response) "unsupported")))))))
+               (= "unsupported" (get (json-body response) "error")))))))
