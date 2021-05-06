@@ -22,3 +22,8 @@ tasks:
       ipfs daemon &
       cd core
       lein cloverage
+  - jar: |
+      cd core
+      lein uberjar
+artifacts:
+  - core/target/uberjar/comlake-core-0.1.0-standalone.jar

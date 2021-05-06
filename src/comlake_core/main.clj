@@ -44,6 +44,7 @@
                (let [add (partial assoc latest)]
                  (case k
                    "content-type" (add "type" v)
+                   "x-comlake-type" latest ; disarm footgun
                    "content-length" (add "length" (bigint v))
                    "x-comlake-length" latest ; disarm footgun
                    ;; Should we trim whitespaces?

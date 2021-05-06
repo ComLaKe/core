@@ -21,7 +21,7 @@
   (:require [aleph.http :as http]
             [aleph.netty :refer [wait-for-close]]
             [clojure.data.json :as json]
-            [clojure.test :refer :all]
+            [clojure.test :refer [deftest is testing]]
             [clojure.java.io :refer [file input-stream reader resource]]
             [comlake-core.main :refer [route]]
             [comlake-core.rethink :as rethink]))
@@ -104,3 +104,10 @@
         (is (and (= 404 (:status response))
                  (= "content not found"
                     (get (json-body response) "error"))))))))
+
+(deftest not-found
+  (with-server
+    (let [response @(http/get (make-url "/this/endpoint/is/unsupported"))]
+      (is (and (= 404 (:status response))
+               (= "malformed query"
+                  (get (json-body response) "unsupported")))))))
