@@ -29,19 +29,21 @@
       (r/run (r/table-drop table-name) conn))
     (r/run (r/table-create table-name) conn)))
 
+(defn run
+  "Run given RethinkDB query."
+  [query]
+  (with-open [conn (r/connect :host "127.0.0.1" :port 28015 :db "test")]
+    (r/run query conn)))
+
 (defn insert
   "Insert given row to RethinkDB."
   [row]
-  (with-open [conn (r/connect :host "127.0.0.1" :port 28015 :db "test")]
-    (r/run (r/insert (r/table table-name) row) conn)))
+  (run (r/insert (r/table table-name) row)))
 
 (defn search
   "Filter for rows matching query."
   [query]
-  (with-open [conn (r/connect :host "127.0.0.1" :port 28015 :db "test")]
-    (r/run (r/filter (r/table table-name)
-                     (r/fn [row] (query row)))
-           conn)))
+  (run (r/filter (r/table table-name) (r/fn [row] (query row)))))
 
 (defn ignore-first
   "Construct a function ignoring the first argument."
