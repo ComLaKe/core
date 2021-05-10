@@ -21,11 +21,12 @@
   (:require [aleph.http :refer [start-server]]
             [clojure.data.json :as json]
             [clojure.java.io :refer [reader]]
-            [clojure.set :refer [subset?]]
-            [clojure.string :refer [split starts-with?]]
+            [clojure.set :refer [difference]]
+            [clojure.string :refer [join split starts-with?]]
             [comlake-core.ipfs :as fs]
             [comlake-core.rethink :as db]
-            [ring.middleware.reload :refer [wrap-reload]]))
+            [ring.middleware.reload :refer [wrap-reload]]
+            [taoensso.timbre :refer [debug]]))
 
 (defn error-response
   "Wrap given error string in a Ring JSON response."
@@ -52,14 +53,16 @@
                    (if (starts-with? k header-prefix)
                        (add (subs k (count header-prefix)) v)
                        latest))))
-             {} headers)]
-    (if (subset? #{"length" "type" "name" "source" "topics"} kv)
+             {} headers)
+        missing (difference #{"length" "type" "name" "source" "topics"}
+                            (set (keys kv)))]
+    (if (empty? missing)
       (let [cid (fs/add body)] ; TODO: handle exceptions and size mismatch
         (db/insert (assoc kv "cid" cid))
         {:status 200
          :headers {:content-type "application/json"}
          :body (json/write-str {"cid" cid})})
-      (error-response "missing metadata fields"))))
+      (error-response {:missing-metadata missing}))))
 
 (defn search
   "Return query result as a HTTP response."
@@ -91,10 +94,18 @@
       (and (= method :get) (starts-with? uri "/get/")) (forward (subs uri 5))
       :else (error-response "unsupported" 404))))
 
+(defn handler
+  "Handle HTTP request."
+  [request]
+  (let [response (route request)]
+    (debug request "=>" response)
+    response))
+
 (defn -main [& args]
+  "Start the HTTP server."
   (db/clear)
   (start-server
     (if (some #{"reload"} args)
-      (wrap-reload #'route)
-      route)
+      (wrap-reload #'handler)
+      handler)
     {:port 8090}))

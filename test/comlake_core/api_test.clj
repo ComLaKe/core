@@ -69,7 +69,7 @@
                          :throw-exceptions? false}
                 response @(http/post url options)]
             (is (and (= 400 (:status response))
-                     (= "missing metadata fields"
+                     (= {"missing-metadata" ["source"]}
                         (get (json-body response) "error"))))))))))
 
 (deftest post-find
