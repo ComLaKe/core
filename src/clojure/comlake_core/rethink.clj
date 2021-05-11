@@ -17,7 +17,8 @@
 
 (ns comlake-core.rethink
   "RethinkDB wrapper."
-  (:require [rethinkdb.query :as r]))
+  (:require [rethinkdb.query :as r])
+  (:import (java.util ArrayList)))
 
 (def table-name "comlake")
 
@@ -38,7 +39,9 @@
 (defn insert
   "Insert given row to RethinkDB."
   [row]
-  (run (r/insert (r/table table-name) row)))
+  (run (r/insert (r/table table-name)
+                 (assoc (reduce (fn [m [k v]] (assoc m k v)) {} row)
+                        "topics" (vec (get row "topics"))))))
 
 (defn search
   "Filter for rows matching query."
@@ -73,7 +76,8 @@
   "Parse query AST into ReQL.  Return nil in case of an invalid AST,
   otherwise a function taking a RethinkDB row and returning the ReQL."
   [ast]
-  (if (vector? ast)
+  (if (or (vector? ast)
+          (= (type ast) ArrayList))
     (when-let [[op pred] (get ops (first ast))]
       (when (pred (dec (count ast)))
         (let [args (map parse-qast (rest ast))]

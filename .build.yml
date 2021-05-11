@@ -21,6 +21,6 @@ tasks:
       rethinkdb --no-http-admin &
       ipfs daemon &
       cd core
-      lein cloverage
+      lein test
 environment:
   LEIN_SNAPSHOTS_IN_RELEASE: 1

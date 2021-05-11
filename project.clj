@@ -7,15 +7,18 @@
   :dependencies [[aleph "0.4.6"]
                  [com.apa512/rethinkdb "1.0.0-SNAPSHOT"]
                  [com.github.ipfs/java-ipfs-http-client "1.3.3"]
+                 [com.google.code.gson/gson "2.8.6"]
                  [com.taoensso/timbre "5.1.2"]
                  [org.clojure/clojure "1.10.3"]
                  [org.clojure/data.json "2.2.1"]
                  [ring/ring-devel "1.9.2"]
                  [ring/ring-jetty-adapter "1.9.2"]]
   :main ^:skip-aot comlake-core.main
+  :source-paths ["src/clojure"]
+  :java-source-paths ["src/java"]
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all}}
-  :plugins [[lein-cloverage "1.2.2"]
-            [lein-codox "0.10.7"]]
+  :plugins [[lein-codox "0.10.7"]
+            [lein-virgil "0.1.9"]]
   :codox {:source-uri ~(str "https://github.com/ComLake/core"
                             "/blob/{git-commit}/{filepath}#L{line}")})

@@ -23,7 +23,7 @@
             [clojure.data.json :as json]
             [clojure.test :refer [deftest is testing]]
             [clojure.java.io :refer [file input-stream reader resource]]
-            [comlake-core.main :refer [route]]
+            [comlake-core.main :refer [-main]]
             [comlake-core.rethink :as rethink]))
 
 (def port 42069)
@@ -39,9 +39,8 @@
 (defmacro with-server
   "Manage a test server for the code in body."
   [& body]
-  `(let [server# (http/start-server route {:port port})]
+  `(let [server# (-main (str port))]
      ;; TODO: add mock data
-     (rethink/clear)
      (try ~@body
           (finally (.close server#)
                    (wait-for-close server#)))))
