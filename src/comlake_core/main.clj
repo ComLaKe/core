@@ -22,7 +22,7 @@
             [clojure.string :refer [starts-with?]]
             [comlake-core.rethink :as db]
             [taoensso.timbre :refer [debug]])
-  (:import (comlake.core Handler)))
+  (:import (comlake_core Handler)))
 
 (defn route
   "Route HTTP endpoints."

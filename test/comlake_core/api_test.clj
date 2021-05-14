@@ -61,6 +61,12 @@
             (is (and (= 200 (:status response))
                      (= "QmbwXK2Wg6npoAusr9MkSduuAViS6dxEQBNzqoixanVtj5"
                         (get (json-body response) "cid")))))))
+      (testing "empty data"
+        (let [options {:headers (assoc headers :content-length 0)
+                       :throw-exceptions? false}
+              response @(http/post url options)]
+          (is (and (= 400 (:status response))
+                   (= "empty data" (get (json-body response) "error"))))))
       (testing "missing headers"
         (with-open [stream (input-stream interjection)]
           (let [options {:headers (dissoc headers :x-comlake-source)

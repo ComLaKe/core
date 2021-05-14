@@ -17,7 +17,7 @@
  * along with comlake-core.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package comlake.core;
+package comlake_core;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -32,6 +32,8 @@ import clojure.java.api.Clojure;
 import clojure.lang.IFn;
 
 import com.google.gson.Gson;
+
+import comlake_core.InterPlanetary;
 
 public class Handler {
     static final String[] requiredFields = {"length", "type",
@@ -97,7 +99,9 @@ public class Handler {
             return error(Map.of("missing-metadata", missing));
 
         // TODO: handle exceptions and size mismatch
-        var cid = Clojure.var("comlake-core.ipfs", "add").invoke(body);
+        var cid = InterPlanetary.add(body);
+        if (cid == null)
+            return error("empty data");
         metadata.put("cid", cid);
 
         var insert = Clojure.var("comlake-core.rethink", "insert");
@@ -124,7 +128,7 @@ public class Handler {
      * as a Ring response.
     **/
     public static Map get(String cid) {
-        var body = Clojure.var("comlake-core.ipfs", "fetch").invoke(cid);
+        var body = InterPlanetary.fetch(cid);
         if (body == null)
             return error("content not found", 404);
         return respond(200, contentType("application/octet-stream"), body);

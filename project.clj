@@ -12,11 +12,11 @@
                  [org.clojure/clojure "1.10.3"]
                  [org.clojure/data.json "2.2.1"]]
   :main ^:skip-aot comlake-core.main
-  :source-paths ["src/clojure"]
-  :java-source-paths ["src/java"]
+  :java-source-paths ["src"]
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all}}
   :plugins [[lein-codox "0.10.7"]
             [lein-virgil "0.1.9"]]
+  :warn-on-reflection false
   :codox {:source-uri ~(str "https://github.com/ComLake/core"
                             "/blob/{git-commit}/{filepath}#L{line}")})
