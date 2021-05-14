@@ -21,7 +21,6 @@
   (:require [aleph.http :refer [start-server]]
             [clojure.string :refer [starts-with?]]
             [comlake-core.rethink :as db]
-            [ring.middleware.reload :refer [wrap-reload]]
             [taoensso.timbre :refer [debug]])
   (:import (comlake.core Handler)))
 

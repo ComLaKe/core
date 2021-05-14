@@ -19,8 +19,9 @@
 
 package comlake.core;
 
-import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -65,14 +66,13 @@ public class Handler {
     }
 
     /** Ingest data from the given request and return appropriate response. **/
-    public static Map add(Map<String, String> headers,
-                          ByteArrayInputStream body) {
+    public static Map add(Map<String, String> headers, InputStream body) {
         var metadata = new HashMap<String, Object>();
         for (var header : headers.entrySet()) {
             var key = header.getKey();
             switch (key) {
             case "content-length":
-                metadata.put("length", Integer.parseInt(header.getValue()));
+                metadata.put("length", new BigInteger(header.getValue()));
                 break;
             case "content-type":
                 metadata.put("type", header.getValue());
@@ -107,7 +107,7 @@ public class Handler {
     }
 
     /** Return query result as a http response. **/
-    public static Map find(ByteArrayInputStream ast) {
+    public static Map find(InputStream ast) {
         var reader = new InputStreamReader(ast);
         var parseAst = Clojure.var("comlake-core.rethink", "parse-qast");
         var query = parseAst.invoke(gson.fromJson(reader, List.class));
