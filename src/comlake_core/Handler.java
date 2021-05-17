@@ -33,12 +33,14 @@ import clojure.lang.IFn;
 
 import com.google.gson.Gson;
 
+import comlake_core.FileSystem;
 import comlake_core.InterPlanetary;
 
 public class Handler {
     static final String[] requiredFields = {"length", "type",
                                             "name", "source", "topics"};
     static final Gson gson = new Gson();
+    static FileSystem fs = new InterPlanetary("/ip4/127.0.0.1/tcp/5001");
 
     /** Construct a Ring response. **/
     static Map respond(int status, Map headers, Object body) {
@@ -99,7 +101,7 @@ public class Handler {
             return error(Map.of("missing-metadata", missing));
 
         // TODO: handle exceptions and size mismatch
-        var cid = InterPlanetary.add(body);
+        var cid = fs.add(body);
         if (cid == null)
             return error("empty data");
         metadata.put("cid", cid);
@@ -128,7 +130,7 @@ public class Handler {
      * as a Ring response.
     **/
     public static Map get(String cid) {
-        var body = InterPlanetary.fetch(cid);
+        var body = fs.fetch(cid);
         if (body == null)
             return error("content not found", 404);
         return respond(200, contentType("application/octet-stream"), body);

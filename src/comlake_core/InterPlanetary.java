@@ -26,11 +26,17 @@ import io.ipfs.api.IPFS;
 import static io.ipfs.api.NamedStreamable.InputStreamWrapper;
 import static io.ipfs.multihash.Multihash.fromBase58;
 
-public class InterPlanetary {
-    static IPFS ipfs = new IPFS("/ip4/127.0.0.1/tcp/5001");
+import comlake_core.FileSystem;
+
+public class InterPlanetary implements FileSystem {
+    private IPFS ipfs;
+
+    public InterPlanetary(String multiaddr) {
+        ipfs = new IPFS(multiaddr);
+    }
 
     /** Add the content of the given stream to IPFS and return the CID. **/
-    public static String add(InputStream istream) {
+    public String add(InputStream istream) {
         var w = new InputStreamWrapper(istream);
         try {
             return ipfs.add(w).get(0).hash.toString();
@@ -42,7 +48,7 @@ public class InterPlanetary {
     }
 
     /** Stream the IPFS file if given CIDv0 is valid, otherwise return nil. **/
-    public static InputStream fetch(String cid) {
+    public InputStream fetch(String cid) {
         try {
             return ipfs.catStream(fromBase58(cid));
         } catch (IllegalStateException e) {
