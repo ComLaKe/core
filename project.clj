@@ -8,6 +8,8 @@
                  [com.apa512/rethinkdb "1.0.0-SNAPSHOT"]
                  [com.github.ComLake/java-ipfs-http-client "1.3.4"]
                  [com.google.code.gson/gson "2.8.6"]
+                 [com.mchange/c3p0 "0.9.5.5"]
+                 [org.postgresql/postgresql "42.2.20"]
                  [com.taoensso/timbre "5.1.2"]
                  [org.clojure/clojure "1.10.3"]
                  [org.clojure/data.json "2.2.1"]]
