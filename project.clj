@@ -11,12 +11,14 @@
                  [com.mchange/c3p0 "0.9.5.5"]
                  [org.postgresql/postgresql "42.2.20"]
                  [com.taoensso/timbre "5.1.2"]
-                 [org.clojure/clojure "1.10.3"]
-                 [org.clojure/data.json "2.2.1"]]
+                 [org.clojure/clojure "1.10.3"]]
   :main ^:skip-aot comlake-core.main
   :java-source-paths ["src"]
   :target-path "target/%s"
-  :profiles {:uberjar {:aot :all}}
+  :profiles {:repl {:plugins [[cider/cider-nrepl "0.26.0"]
+                              [lein-virgil "0.1.9"]]}
+             :test {:dependencies [[org.clojure/data.json "2.2.1"]]}
+             :uberjar {:aot :all}}
   :plugins [[lein-cloverage "1.2.2"]
             [lein-codox "0.10.7"]]
   :warn-on-reflection false

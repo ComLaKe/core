@@ -6,11 +6,14 @@ USTH data lake core
 
 * [Leiningen](https://leiningen.org)
 * [RethinkDB](https://rethinkdb.com)
+* [PostgreSQL](https://www.postgresql.org)
 * [IPFS](https://ipfs.io)
 
 ## Hacking
 
-    lein run -- reload
+    $ lein repl
+    comlake-core.main=> (def server (-main)) ; start HTTP server
+    comlake-core.main=> (.close server) ; stop server (e.g. to restart)
 
 ## Copying
 
