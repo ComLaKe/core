@@ -24,12 +24,15 @@ import java.beans.PropertyVetoException;
 import java.sql.SQLException;
 import java.util.Map;
 
+import com.google.gson.Gson;
+
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 
 import comlake_core.Database;
 import comlake_core.Metadata;
 
 public class PostgreSQL implements Database {
+    private static final Gson gson = new Gson();
     private ComboPooledDataSource pool = new ComboPooledDataSource();
 
     public PostgreSQL(String url, String user, String password) {
@@ -50,7 +53,7 @@ public class PostgreSQL implements Database {
             var conn = pool.getConnection();
             var sql = ("INSERT INTO comlake"
                        + " (cid, length, type, name, source, topics, optional)"
-                       + " VALUES (?, ?, ?, ?, ?, ?::json)");
+                       + " VALUES (?, ?, ?, ?, ?, ?, ?::json)");
             var statement = conn.prepareStatement(sql);
             statement.setObject(1, metadata.cid);
             statement.setObject(2, metadata.length);
@@ -58,7 +61,7 @@ public class PostgreSQL implements Database {
             statement.setObject(4, metadata.name);
             statement.setObject(5, metadata.source);
             statement.setObject(6, metadata.topics);
-            statement.setObject(7, metadata.optional);
+            statement.setObject(7, gson.toJson(metadata.optional));
             statement.executeUpdate();
             statement.close();
             conn.close();

@@ -21,9 +21,11 @@ package comlake_core;
 
 import java.io.InputStream;
 import java.math.BigInteger;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.google.gson.Gson;
 
@@ -33,6 +35,9 @@ import comlake_core.FileSystem;
 import comlake_core.Metadata;
 
 public class Ingestor {
+    static final String[] requiredFields = {"length", "type",
+                                            "name", "source", "topics"};
+
     private FileSystem fs;
     private Database db;
 
@@ -61,12 +66,13 @@ public class Ingestor {
         return result;
     }
 
-    static Outcome<BaseMetadata, Set<String>> parse(Map<String, String> raw) {
+    static Outcome<BaseMetadata, Map> parse(Map<String, String> raw) {
         // How could set difference not be in Java standard library?
-        var missing = Set.of("length", "type", "name", "source", "topics");
-        missing.removeAll(raw.keySet());
+        var missing = Arrays.stream(requiredFields)
+            .filter(field -> raw.get(field) == null)
+            .collect(Collectors.toList());
         if (!missing.isEmpty())
-            return Outcome.fail(missing);
+            return Outcome.fail(Map.of("missing-metadata", missing));
 
         var length = new BigInteger(raw.remove("length"));
         var type = raw.remove("type");

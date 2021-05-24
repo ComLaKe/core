@@ -35,6 +35,7 @@ import com.google.gson.Gson;
 
 import comlake_core.Database;
 import comlake_core.FileSystem;
+import comlake_core.Ingestor;
 import comlake_core.InterPlanetaryFileSystem;
 import comlake_core.PostgreSQL;
 
@@ -44,11 +45,13 @@ public class HttpHandler {
     static final Gson gson = new Gson();
     private FileSystem fs;
     private Database db;
+    private Ingestor ingestor;
 
     public HttpHandler() {
         // TODO: stop hard-coding these
         fs = new InterPlanetaryFileSystem("/ip4/127.0.0.1/tcp/5001");
         db = new PostgreSQL("jdbc:postgresql:comlake", "postgres", "postgres");
+        ingestor = new Ingestor(fs, db);
     }
 
     /** Construct a Ring response. **/
@@ -80,6 +83,12 @@ public class HttpHandler {
 
     /** Ingest data from the given request and return appropriate response. **/
     public Map add(Map<String, String> headers, InputStream body) {
+        // var outcome = ingestor.add(headers, body);
+        // if (!outcome.ok)
+        //     return error(outcome.error);
+        // return respond(200, contentType("application/json"),
+        //                gson.toJson(Map.of("cid", outcome.result)));
+
         var metadata = new HashMap<String, Object>();
         for (var header : headers.entrySet()) {
             var key = header.getKey();
