@@ -28,10 +28,10 @@ import static io.ipfs.multihash.Multihash.fromBase58;
 
 import comlake_core.FileSystem;
 
-public class InterPlanetary implements FileSystem {
+public class InterPlanetaryFileSystem implements FileSystem {
     private IPFS ipfs;
 
-    public InterPlanetary(String multiaddr) {
+    public InterPlanetaryFileSystem(String multiaddr) {
         ipfs = new IPFS(multiaddr);
     }
 

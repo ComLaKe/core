@@ -33,14 +33,23 @@ import clojure.lang.IFn;
 
 import com.google.gson.Gson;
 
+import comlake_core.Database;
 import comlake_core.FileSystem;
-import comlake_core.InterPlanetary;
+import comlake_core.InterPlanetaryFileSystem;
+import comlake_core.PostgreSQL;
 
-public class Handler {
+public class HttpHandler {
     static final String[] requiredFields = {"length", "type",
                                             "name", "source", "topics"};
     static final Gson gson = new Gson();
-    static FileSystem fs = new InterPlanetary("/ip4/127.0.0.1/tcp/5001");
+    private FileSystem fs;
+    private Database db;
+
+    public HttpHandler() {
+        // TODO: stop hard-coding these
+        fs = new InterPlanetaryFileSystem("/ip4/127.0.0.1/tcp/5001");
+        db = new PostgreSQL("jdbc:postgresql:comlake", "postgres", "postgres");
+    }
 
     /** Construct a Ring response. **/
     static Map respond(int status, Map headers, Object body) {
@@ -70,7 +79,7 @@ public class Handler {
     }
 
     /** Ingest data from the given request and return appropriate response. **/
-    public static Map add(Map<String, String> headers, InputStream body) {
+    public Map add(Map<String, String> headers, InputStream body) {
         var metadata = new HashMap<String, Object>();
         for (var header : headers.entrySet()) {
             var key = header.getKey();
@@ -113,7 +122,7 @@ public class Handler {
     }
 
     /** Return query result as a http response. **/
-    public static Map find(InputStream ast) {
+    public Map find(InputStream ast) {
         var reader = new InputStreamReader(ast);
         var parseAst = Clojure.var("comlake-core.rethink", "parse-qast");
         var query = parseAst.invoke(gson.fromJson(reader, List.class));
@@ -129,7 +138,7 @@ public class Handler {
      * Forward content from underlying distributed filesystem
      * as a Ring response.
     **/
-    public static Map get(String cid) {
+    public Map get(String cid) {
         var body = fs.fetch(cid);
         if (body == null)
             return error("content not found", 404);

@@ -22,32 +22,35 @@
             [clojure.string :refer [starts-with?]]
             [comlake-core.rethink :as db]
             [taoensso.timbre :refer [debug]])
-  (:import (comlake_core Handler)))
+  (:import (comlake_core HttpHandler)))
 
 (defn route
   "Route HTTP endpoints."
-  [request]
+  [request handler]
   (let [method (:request-method request)
         uri (:uri request)]
     (cond
-      (and (= method :post) (= uri "/add")) (Handler/add (:headers request)
-                                                         (:body request))
-      (and (= method :post) (= uri "/find")) (Handler/find (:body request))
+      (and (= method :post) (= uri "/add")) (.add handler (:headers request)
+                                                          (:body request))
+      (and (= method :post) (= uri "/find")) (.find handler (:body request))
       (and (= method :get)
-           (starts-with? uri "/get/")) (Handler/get (subs uri 5))
-      :else (Handler/error "unsupported" 404))))
+           (starts-with? uri "/get/")) (.get handler (subs uri 5))
+      :else (HttpHandler/error "unsupported" 404))))
 
-(defn handler
-  "Handle HTTP request."
-  [request]
-  ;; java.util.Map.of does not produce clojure map.
-  (let [response (reduce (fn [m [k v]] (assoc m k v)) {} (route request))]
-    (debug request "=>" response)
-    response))
+(defn make-handler
+  "Construct a Ring request handler."
+  []
+  (let [handler (HttpHandler.)]
+    (fn [request]
+      ;; java.util.Map.of does not produce clojure map.
+      (let [response (reduce (fn [m [k v]] (assoc m k v)) {}
+                             (route request handler))]
+        (debug request "=>" response)
+        response))))
 
 (defn -main
   "Start the HTTP server."
   ([] (-main "8090"))
   ([port & args]
    (db/clear)
-   (start-server handler {:port (Integer/parseInt port)})))
+   (start-server (make-handler) {:port (Integer/parseInt port)})))

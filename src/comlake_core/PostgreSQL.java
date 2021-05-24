@@ -30,9 +30,9 @@ import comlake_core.Database;
 import comlake_core.Metadata;
 
 public class PostgreSQL implements Database {
-    private static ComboPooledDataSource pool = new ComboPooledDataSource();
+    private ComboPooledDataSource pool = new ComboPooledDataSource();
 
-    static {
+    public PostgreSQL(String url, String user, String password) {
         try {
             pool.setDriverClass("org.postgresql.Driver");
             pool.setJdbcUrl("jdbc:postgresql:comlake");
@@ -49,7 +49,7 @@ public class PostgreSQL implements Database {
         try {
             var conn = pool.getConnection();
             var sql = ("INSERT INTO comlake"
-                       + " (cid, length, type, name, source, optional)"
+                       + " (cid, length, type, name, source, topics, optional)"
                        + " VALUES (?, ?, ?, ?, ?, ?::json)");
             var statement = conn.prepareStatement(sql);
             statement.setObject(1, metadata.cid);
@@ -57,7 +57,8 @@ public class PostgreSQL implements Database {
             statement.setObject(3, metadata.type);
             statement.setObject(4, metadata.name);
             statement.setObject(5, metadata.source);
-            statement.setObject(6, metadata.optional);
+            statement.setObject(6, metadata.topics);
+            statement.setObject(7, metadata.optional);
             statement.executeUpdate();
             statement.close();
             conn.close();

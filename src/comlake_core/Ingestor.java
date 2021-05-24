@@ -33,8 +33,8 @@ import comlake_core.FileSystem;
 import comlake_core.Metadata;
 
 public class Ingestor {
-    static FileSystem fs;
-    static Database db;
+    private FileSystem fs;
+    private Database db;
 
     public Ingestor(FileSystem filesystem, Database database) {
         fs = filesystem;
@@ -79,8 +79,8 @@ public class Ingestor {
     }
 
     /** Ingest data from the given request and return appropriate response. **/
-    public static Outcome<String, Object> add(Map<String, String> headers,
-                                              InputStream body) {
+    public Outcome<String, Object> add(Map<String, String> headers,
+                                       InputStream body) {
         var base = parse(preprocess(headers));
         if (!base.ok)
             return Outcome.fail(base.error);
