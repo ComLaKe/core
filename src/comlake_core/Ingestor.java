@@ -84,7 +84,12 @@ public class Ingestor {
         return Outcome.pass(base);
     }
 
-    /** Ingest data from the given request and return appropriate response. **/
+    /**
+     * Ingest data from the given request.
+     *
+     * Return the content ID upon success, otherwise the appropriate error.
+     * Errors not due to given arguments are represented by null.
+    **/
     public Outcome<String, Object> add(Map<String, String> headers,
                                        InputStream body) {
         var base = parse(preprocess(headers));
@@ -95,8 +100,8 @@ public class Ingestor {
         var cid = fs.add(body);
         if (cid == null)
             return Outcome.fail("empty data");
-
-        db.insert(Metadata.of(base.result, cid));
+        if (!db.insert(Metadata.of(base.result, cid)))
+            return Outcome.fail(null);
         return Outcome.pass(cid);
     }
 }

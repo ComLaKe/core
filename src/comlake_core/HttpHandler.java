@@ -78,6 +78,8 @@ public class HttpHandler {
      * defaulting status to 400 Bad Request.
     **/
     static Map error(Object err) {
+        if (err == null)
+            return error("internal server error", 500);
         return error(err, 400);
     }
 
@@ -86,8 +88,9 @@ public class HttpHandler {
         // var outcome = ingestor.add(headers, body);
         // if (!outcome.ok)
         //     return error(outcome.error);
-        // return respond(200, contentType("application/json"),
-        //                gson.toJson(Map.of("cid", outcome.result)));
+
+        // var json = gson.toJson(Map.of("cid", outcome.result));
+        // return respond(200, contentType("application/json"), json);
 
         var metadata = new HashMap<String, Object>();
         for (var header : headers.entrySet()) {
@@ -134,10 +137,12 @@ public class HttpHandler {
     public Map find(InputStream ast) {
         var reader = new InputStreamReader(ast);
         var parseAst = Clojure.var("comlake-core.rethink", "parse-qast");
+        // var query = db.parseAst(gson.fromJson(reader, List.class));
         var query = parseAst.invoke(gson.fromJson(reader, List.class));
         if (query == null)
             return error("malformed query");
 
+        // var body = gson.toJson(db.search(query));
         var search = Clojure.var("comlake-core.rethink", "search");
         var body = gson.toJson(search.invoke(query));
         return respond(200, contentType("application/json"), body);

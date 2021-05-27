@@ -21,7 +21,10 @@ package comlake_core;
 
 import comlake_core.Metadata;
 
-public interface Database {
+public interface Database extends AutoCloseable {
+    /** Clear the table. **/
+    public boolean clear();
+
     /** Insert given row to underlying database. **/
-    public void insert(Metadata metadata);
+    public boolean insert(Metadata metadata);
 }
