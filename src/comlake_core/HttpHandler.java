@@ -33,11 +33,11 @@ import clojure.lang.IFn;
 
 import com.google.gson.Gson;
 
-import comlake_core.Database;
-import comlake_core.FileSystem;
 import comlake_core.Ingestor;
-import comlake_core.InterPlanetaryFileSystem;
-import comlake_core.PostgreSQL;
+import comlake_core.db.Database;
+import comlake_core.db.PostgreSQL;
+import comlake_core.fs.FileSystem;
+import comlake_core.fs.InterPlanetaryFileSystem;
 
 public class HttpHandler {
     static final String[] requiredFields = {"length", "type",
@@ -51,8 +51,8 @@ public class HttpHandler {
     private Ingestor ingestor;
 
     public HttpHandler() {
-        require.invoke(Clojure.read("comlake-core.qast"));
-        parseAst = Clojure.var("comlake-core.qast", "json-to-psql");
+        require.invoke(Clojure.read("comlake-core.db.qast"));
+        parseAst = Clojure.var("comlake-core.db.qast", "json-to-psql");
 
         // TODO: stop hard-coding these
         fs = new InterPlanetaryFileSystem("/ip4/127.0.0.1/tcp/5001");

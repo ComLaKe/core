@@ -17,7 +17,7 @@
  * along with comlake-core.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package comlake_core;
+package comlake_core.fs;
 
 import java.io.InputStream;
 

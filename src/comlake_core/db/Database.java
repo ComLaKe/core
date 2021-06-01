@@ -17,11 +17,11 @@
  * along with comlake-core.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package comlake_core;
+package comlake_core.db;
 
 import java.util.List;
 
-import comlake_core.Metadata;
+import comlake_core.db.Metadata;
 
 public interface Database extends AutoCloseable {
     /** Clear the table. **/

@@ -1,5 +1,5 @@
 /*
- * Metadata class
+ * Metadata without content address
  * Copyright (C) 2021  Nguyễn Gia Phong
  *
  * This file is part of comlake-core.
@@ -17,26 +17,37 @@
  * along with comlake-core.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package comlake_core;
+package comlake_core.db;
 
-import comlake_core.BaseMetadata;
+import java.io.InputStream;
+import java.math.BigInteger;
+import java.util.Map;
+import java.util.Set;
+
+import comlake_core.Outcome;
 
 /**
  * Metadata class, which is supposed to be read-only but Java does not have
  * an option better than the atrocity of private fields and getter methods.
 **/
-public class Metadata extends BaseMetadata {
-    public String cid;
+public class BaseMetadata {
+    public BigInteger length;
+    public String type;
+    public String name;
+    public String source;
+    public String[] topics;
+    public Map<String, String> optional;
 
-    public static Metadata of(BaseMetadata base, String contentID) {
-        var result = new Metadata();
-        result.length = base.length;
-        result.type = base.type;
-        result.name = base.name;
-        result.source = base.source;
-        result.topics = base.topics;
-        result.optional = base.optional;
-        result.cid = contentID;
-        return result;
+    public BaseMetadata() {}
+
+    public BaseMetadata(BigInteger length, String type, String name,
+                        String source, String[] topics,
+                        Map<String, String> optional) {
+        this.length = length;
+        this.type = type;
+        this.name = name;
+        this.source = source;
+        this.topics = topics;
+        this.optional = optional;
     }
 }

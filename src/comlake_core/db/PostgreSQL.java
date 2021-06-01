@@ -17,7 +17,7 @@
  * along with comlake-core.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package comlake_core;
+package comlake_core.db;
 
 import java.math.BigInteger;
 import java.io.InputStream;
@@ -32,9 +32,9 @@ import com.google.gson.Gson;
 
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 
-import comlake_core.BaseMetadata;
-import comlake_core.Database;
-import comlake_core.Metadata;
+import comlake_core.db.BaseMetadata;
+import comlake_core.db.Database;
+import comlake_core.db.Metadata;
 
 public class PostgreSQL implements Database {
     private static final String TABLE = "comlake";

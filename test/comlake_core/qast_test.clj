@@ -19,7 +19,7 @@
 (ns comlake-core.qast-test
   "Query AST parser tests."
   (:require [clojure.test :refer [deftest is testing]]
-            [comlake-core.qast :refer [qast-to-psql]]))
+            [comlake-core.db.qast :refer [qast-to-psql]]))
 
 (deftest operators
   (testing "regular expression"

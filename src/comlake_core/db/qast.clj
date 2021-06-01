@@ -15,7 +15,7 @@
 ;;;; You should have received a copy of the GNU Affero General Public License
 ;;;; along with comlake-core.  If not, see <https://www.gnu.org/licenses/>.
 
-(ns comlake-core.qast
+(ns comlake-core.db.qast
   "Query abstract syntax tree parser."
   (:require [clojure.data.json :as json]
             [clojure.string :as string]))

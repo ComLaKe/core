@@ -17,7 +17,7 @@
  * along with comlake-core.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package comlake_core;
+package comlake_core.fs;
 
 import java.io.InputStream;
 import java.io.IOException;
@@ -26,7 +26,7 @@ import io.ipfs.api.IPFS;
 import static io.ipfs.api.NamedStreamable.InputStreamWrapper;
 import static io.ipfs.multihash.Multihash.fromBase58;
 
-import comlake_core.FileSystem;
+import comlake_core.fs.FileSystem;
 
 public class InterPlanetaryFileSystem implements FileSystem {
     private IPFS ipfs;

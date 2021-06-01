@@ -29,10 +29,10 @@ import java.util.stream.Collectors;
 
 import com.google.gson.Gson;
 
-import comlake_core.BaseMetadata;
-import comlake_core.Database;
-import comlake_core.FileSystem;
-import comlake_core.Metadata;
+import comlake_core.db.BaseMetadata;
+import comlake_core.db.Database;
+import comlake_core.db.Metadata;
+import comlake_core.fs.FileSystem;
 
 public class Ingestor {
     static final String[] requiredFields = {"length", "type",
