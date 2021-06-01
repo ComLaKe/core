@@ -19,6 +19,8 @@
 
 package comlake_core;
 
+import java.util.List;
+
 import comlake_core.Metadata;
 
 public interface Database extends AutoCloseable {
@@ -27,4 +29,7 @@ public interface Database extends AutoCloseable {
 
     /** Insert given row to underlying database. **/
     public boolean insert(Metadata metadata);
+
+    /** Filter for rows matching predicate, return null on errors. **/
+    public List<Metadata> search(String predicate);
 }

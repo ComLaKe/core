@@ -43,11 +43,17 @@ public class HttpHandler {
     static final String[] requiredFields = {"length", "type",
                                             "name", "source", "topics"};
     static final Gson gson = new Gson();
+    static final IFn require = Clojure.var("clojure.core", "require");
+
+    private IFn parseAst;
     private FileSystem fs;
     private Database db;
     private Ingestor ingestor;
 
     public HttpHandler() {
+        require.invoke(Clojure.read("comlake-core.qast"));
+        parseAst = Clojure.var("comlake-core.qast", "json-to-psql");
+
         // TODO: stop hard-coding these
         fs = new InterPlanetaryFileSystem("/ip4/127.0.0.1/tcp/5001");
         db = new PostgreSQL("jdbc:postgresql:comlake", "postgres", "postgres");
@@ -85,66 +91,25 @@ public class HttpHandler {
 
     /** Ingest data from the given request and return appropriate response. **/
     public Map add(Map<String, String> headers, InputStream body) {
-        // var outcome = ingestor.add(headers, body);
-        // if (!outcome.ok)
-        //     return error(outcome.error);
+        var outcome = ingestor.add(headers, body);
+        if (!outcome.ok)
+            return error(outcome.error);
 
-        // var json = gson.toJson(Map.of("cid", outcome.result));
-        // return respond(200, contentType("application/json"), json);
-
-        var metadata = new HashMap<String, Object>();
-        for (var header : headers.entrySet()) {
-            var key = header.getKey();
-            switch (key) {
-            case "content-length":
-                metadata.put("length", new BigInteger(header.getValue()));
-                break;
-            case "content-type":
-                metadata.put("type", header.getValue());
-                break;
-            case "x-comlake-length":
-            case "x-comlake-type":
-                break;  // disarm footgun
-            case "x-comlake-topics":
-                var topics = header.getValue().split("\\s*,\\s*");
-                metadata.put("topics", Arrays.asList(topics));
-                break;
-            default:
-                if (key.startsWith("x-comlake-"))
-                    metadata.put(key.substring(10), header.getValue());
-            }
-        }
-
-        var missing = Arrays.stream(requiredFields)
-            .filter(field -> metadata.get(field) == null)
-            .collect(Collectors.toList());
-        if (!missing.isEmpty())
-            return error(Map.of("missing-metadata", missing));
-
-        // TODO: handle exceptions and size mismatch
-        var cid = fs.add(body);
-        if (cid == null)
-            return error("empty data");
-        metadata.put("cid", cid);
-
-        var insert = Clojure.var("comlake-core.rethink", "insert");
-        insert.invoke(metadata);
-        var json = gson.toJson(Map.of("cid", cid));
+        var json = gson.toJson(Map.of("cid", outcome.result));
         return respond(200, contentType("application/json"), json);
     }
 
     /** Return query result as a http response. **/
     public Map find(InputStream ast) {
-        var reader = new InputStreamReader(ast);
-        var parseAst = Clojure.var("comlake-core.rethink", "parse-qast");
-        // var query = db.parseAst(gson.fromJson(reader, List.class));
-        var query = parseAst.invoke(gson.fromJson(reader, List.class));
-        if (query == null)
+        var predicate = (String) parseAst.invoke(new InputStreamReader(ast));
+        if (predicate == null)
             return error("malformed query");
 
-        // var body = gson.toJson(db.search(query));
-        var search = Clojure.var("comlake-core.rethink", "search");
-        var body = gson.toJson(search.invoke(query));
+        var result = db.search(predicate);
+        if (result == null)
+            return error("failed query");
+
+        var body = gson.toJson(result);
         return respond(200, contentType("application/json"), body);
     }
 

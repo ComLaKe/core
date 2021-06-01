@@ -23,8 +23,7 @@
             [clojure.data.json :as json]
             [clojure.test :refer [deftest is testing]]
             [clojure.java.io :refer [file input-stream reader resource]]
-            [comlake-core.main :refer [-main]]
-            [comlake-core.rethink :as rethink]))
+            [comlake-core.main :refer [-main]]))
 
 (def port 42069)
 (def interjection (resource "test/Interjection"))

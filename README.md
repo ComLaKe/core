@@ -5,7 +5,6 @@ USTH data lake core
 ## Prerequisites
 
 * [Leiningen](https://leiningen.org)
-* [RethinkDB](https://rethinkdb.com)
 * [PostgreSQL](https://www.postgresql.org)
 * [IPFS](https://ipfs.io)
 

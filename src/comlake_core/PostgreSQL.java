@@ -91,7 +91,7 @@ public class PostgreSQL implements Database {
         return true;
     }
 
-    /** Filter for rows matching predicate. **/
+    /** Filter for rows matching predicate, return null on errors. **/
     public List<Metadata> search(String predicate) {
         var result = new ArrayList<Metadata>();
         var query = "SELECT * FROM " + TABLE + " WHERE " + predicate;

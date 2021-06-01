@@ -20,7 +20,6 @@
   (:gen-class)
   (:require [aleph.http :refer [start-server]]
             [clojure.string :refer [starts-with?]]
-            [comlake-core.rethink :as db]
             [taoensso.timbre :refer [debug]])
   (:import (comlake_core HttpHandler)))
 
@@ -52,5 +51,4 @@
   "Start the HTTP server."
   ([] (-main "8090"))
   ([port & args]
-   (db/clear)
    (start-server (make-handler) {:port (Integer/parseInt port)})))
