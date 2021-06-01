@@ -1,15 +1,26 @@
-image: archlinux
+image: debian/buster
+arch: amd64
 packages:
-  - go-ipfs
   - leiningen
   - postgresql
 sources:
   - https://github.com/ComLake/core
 tasks:
-  - init: |
+  - ipfs: |
+      curl \
+        https://dist.ipfs.io/go-ipfs/v0.8.0/go-ipfs_v0.8.0_linux-amd64.tar.gz |
+        tar xvz
+      sudo go-ipfs/install.sh
+      rm -r go-ipfs
       ipfs init
-      systemctl --user enable ipfs.service
+  - psql: |
+      echo host all build 127.0.0.1/32 password |
+        sudo tee -a /etc/postgresql/*/main/pg_hba.conf
+      sudo -u postgres psql < core/resources/psql/auth.sql
+      sudo -u postgres psql < core/resources/psql/db.sql
+      sudo -u postgres psql comlake < core/resources/psql/table.sql
   - test: |
+      ipfs daemon &
       cd core
       lein cloverage
 environment:

@@ -1,4 +1,3 @@
-CREATE DATABASE comlake;
 DROP TABLE IF EXISTS comlake;
 CREATE TABLE comlake (id serial primary key,
                       cid text,
