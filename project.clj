@@ -1,4 +1,4 @@
-(defproject comlake-core "0.2.0"
+(defproject comlake-core "0.2.1-SNAPSHOT"
   :description "USTH data lake core"
   :url "https://github.com/ComLake/core"
   :license {:name "GNU Affero General Public License 3.0"
@@ -7,9 +7,11 @@
   :dependencies [[aleph "0.4.6"]
                  [com.apa512/rethinkdb "1.0.0-SNAPSHOT"]
                  [com.github.ComLake/java-ipfs-http-client "1.3.4"]
+                 [com.github.jezza/toml "1.2-java-8"]
                  [com.google.code.gson/gson "2.8.6"]
                  [com.mchange/c3p0 "0.9.5.5"]
                  [com.taoensso/timbre "5.1.2"]
+                 [net.harawata/appdirs "1.2.1"]
                  [org.clojure/clojure "1.10.3"]
                  [org.clojure/data.json "2.2.1"]
                  [org.postgresql/postgresql "42.2.20"]]

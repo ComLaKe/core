@@ -21,7 +21,8 @@
   (:require [aleph.http :refer [start-server]]
             [clojure.string :refer [starts-with?]]
             [taoensso.timbre :refer [debug]])
-  (:import (comlake_core HttpHandler)))
+  (:import (comlake_core Configuration
+                         HttpHandler)))
 
 (defn route
   "Route HTTP endpoints."
@@ -38,8 +39,8 @@
 
 (defn make-handler
   "Construct a Ring request handler."
-  []
-  (let [handler (HttpHandler.)]
+  [cfg]
+  (let [handler (HttpHandler. cfg)]
     (fn [request]
       ;; java.util.Map.of does not produce clojure map.
       (let [response (reduce (fn [m [k v]] (assoc m k v)) {}
@@ -51,4 +52,5 @@
   "Start the HTTP server."
   ([] (-main "8090"))
   ([port & args]
-   (start-server (make-handler) {:port (Integer/parseInt port)})))
+   (let [cfg (Configuration.)]
+    (start-server (make-handler cfg) {:port (Integer/parseInt port)}))))

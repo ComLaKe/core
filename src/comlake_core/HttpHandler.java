@@ -33,6 +33,7 @@ import clojure.lang.IFn;
 
 import com.google.gson.Gson;
 
+import comlake_core.Configuration;
 import comlake_core.Ingestor;
 import comlake_core.db.Database;
 import comlake_core.db.PostgreSQL;
@@ -50,13 +51,13 @@ public class HttpHandler {
     private Database db;
     private Ingestor ingestor;
 
-    public HttpHandler() {
+    public HttpHandler(Configuration cfg) {
         require.invoke(Clojure.read("comlake-core.db.qast"));
         parseAst = Clojure.var("comlake-core.db.qast", "json-to-psql");
 
         // TODO: stop hard-coding these
-        fs = new InterPlanetaryFileSystem("/ip4/127.0.0.1/tcp/5001");
-        db = new PostgreSQL("jdbc:postgresql:comlake", "postgres", "postgres");
+        fs = new InterPlanetaryFileSystem(cfg.ipfsMultiAddr);
+        db = new PostgreSQL(cfg.psqlUrl, cfg.psqlUser, cfg.psqlPasswd);
         ingestor = new Ingestor(fs, db);
     }
 
