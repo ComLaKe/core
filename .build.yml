@@ -4,7 +4,7 @@ packages:
   - leiningen
   - postgresql
 sources:
-  - https://github.com/ComLake/core
+  - https://github.com/ComLake/comlake.core
 tasks:
   - ipfs: |
       curl \
@@ -16,12 +16,17 @@ tasks:
   - psql: |
       echo host all build 127.0.0.1/32 password |
         sudo tee -a /etc/postgresql/*/main/pg_hba.conf
-      sudo -u postgres psql < core/resources/psql/auth.sql
-      sudo -u postgres psql < core/resources/psql/db.sql
-      sudo -u postgres psql comlake < core/resources/psql/table.sql
+      sudo -u postgres psql < comlake.core/resources/psql/auth.sql
+      sudo -u postgres psql < comlake.core/resources/psql/db.sql
+      sudo -u postgres psql comlake < comlake.core/resources/psql/table.sql
   - test: |
       ipfs daemon &
-      cd core
+      cd comlake.core
       lein cloverage
+  - jar: |
+      cd comlake.core
+      lein uberjar
+artifacts:
+  - comlake.core/target/uberjar/comlake.core-0.2.1-standalone.jar
 environment:
   LEIN_SNAPSHOTS_IN_RELEASE: 1

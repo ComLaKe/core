@@ -2,22 +2,22 @@
  * PostgreSQL wrapper
  * Copyright (C) 2021  Nguyễn Gia Phong
  *
- * This file is part of comlake-core.
+ * This file is part of comlake.core.
  *
- * comlake-core is free software: you can redistribute it and/or modify
+ * comlake.core is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License version 3
  * as published by the Free Software Foundation.
  *
- * comlake-core is distributed in the hope that it will be useful,
+ * comlake.core is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with comlake-core.  If not, see <https://www.gnu.org/licenses/>.
+ * along with comlake.core.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package comlake_core.db;
+package comlake.core.db;
 
 import java.math.BigInteger;
 import java.io.InputStream;
@@ -32,9 +32,9 @@ import com.google.gson.Gson;
 
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 
-import comlake_core.db.BaseMetadata;
-import comlake_core.db.Database;
-import comlake_core.db.Metadata;
+import comlake.core.db.BaseMetadata;
+import comlake.core.db.Database;
+import comlake.core.db.Metadata;
 
 public class PostgreSQL implements Database {
     private static final String TABLE = "comlake";
@@ -104,6 +104,7 @@ public class PostgreSQL implements Database {
                     rs.getString("name"),
                     rs.getString("source"),
                     (String[]) rs.getArray("topics").getArray(),
+                    // This is stupid: it'll get converted back to JSON later.
                     gson.fromJson(rs.getString("optional"), Map.class));
                 result.add(Metadata.of(base, rs.getString("cid")));
             }

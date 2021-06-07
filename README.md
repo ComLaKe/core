@@ -11,8 +11,8 @@ USTH data lake core
 ## Hacking
 
     $ lein repl
-    comlake-core.main=> (def server (-main)) ; start HTTP server
-    comlake-core.main=> (.close server) ; stop server (e.g. to restart)
+    comlake.core.main=> (def server (-main)) ; start HTTP server
+    comlake.core.main=> (.close server) ; stop server (e.g. to restart)
 
 ## Copying
 

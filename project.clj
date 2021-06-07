@@ -1,6 +1,6 @@
-(defproject comlake-core "0.2.1-SNAPSHOT"
+(defproject comlake.core "0.2.1"
   :description "USTH data lake core"
-  :url "https://github.com/ComLake/core"
+  :url "https://github.com/ComLake/comlake.core"
   :license {:name "GNU Affero General Public License 3.0"
             :url "https://www.gnu.org/licenses/agpl-3.0"}
   :repositories [["jitpack" "https://jitpack.io"]]
@@ -15,7 +15,7 @@
                  [org.clojure/clojure "1.10.3"]
                  [org.clojure/data.json "2.2.1"]
                  [org.postgresql/postgresql "42.2.20"]]
-  :main ^:skip-aot comlake-core.main
+  :main ^:skip-aot comlake.core.main
   :java-source-paths ["src"]
   :target-path "target/%s"
   :profiles {:repl {:plugins [[cider/cider-nrepl "0.26.0"]
@@ -24,5 +24,5 @@
   :plugins [[lein-cloverage "1.2.2"]
             [lein-codox "0.10.7"]]
   :warn-on-reflection false
-  :codox {:source-uri ~(str "https://github.com/ComLake/core"
+  :codox {:source-uri ~(str "https://github.com/ComLake/comlake.core"
                             "/blob/{git-commit}/{filepath}#L{line}")})
