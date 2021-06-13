@@ -44,6 +44,13 @@
           (finally (.close server#)
                    (wait-for-close server#)))))
 
+(deftest post-mkdir
+  (with-server
+    (let [response @(http/post (make-url "/mkdir"))]
+      (is (and (= 200 (:status response))
+               (= "QmUNLLsPACCz1vLxQVkXqqLX5R1X345qqfHbsf67hvA3Nn"
+                  (get (json-body response) "cid")))))))
+
 (deftest post-add
   (let [url (make-url "/add")
         headers {:accept "application/json"

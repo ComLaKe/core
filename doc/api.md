@@ -8,6 +8,34 @@ HTTP status codes used by the core API are simple:
 * 400 Bad Request: Malformed request was received.
 * 404 Not Found: The endpoint does not exist.
 
+## POST /mkdir
+
+Create an empty directory.
+
+### Request
+
+No input is required.
+
+#### Example
+
+```http
+POST /mkdir
+```
+
+### Response
+
+The call to this endpoint will return a body in JSON containing either the `cid`
+(content ID) of the data on success or the `error` message upon errors.
+
+#### Example
+
+```http
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{"cid":"QmUNLLsPACCz1vLxQVkXqqLX5R1X345qqfHbsf67hvA3Nn"}
+```
+
 ## POST /add
 
 Add the file along with its metadata to the data lake.

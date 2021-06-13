@@ -22,6 +22,9 @@ package comlake.core.fs;
 import java.io.InputStream;
 
 public interface FileSystem {
+    /** Create an empty directory and return the CID. **/
+    public String mkdir();
+
     /**
      * Add the content of the given stream to underlying storage
      * and return the CID.

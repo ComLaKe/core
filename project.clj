@@ -1,11 +1,10 @@
-(defproject comlake.core "0.2.1"
+(defproject comlake.core "0.3.0-SNAPSHOT"
   :description "USTH data lake core"
   :url "https://github.com/ComLake/comlake.core"
   :license {:name "GNU Affero General Public License 3.0"
             :url "https://www.gnu.org/licenses/agpl-3.0"}
   :repositories [["jitpack" "https://jitpack.io"]]
   :dependencies [[aleph "0.4.6"]
-                 [com.apa512/rethinkdb "1.0.0-SNAPSHOT"]
                  [com.github.ComLake/java-ipfs-http-client "1.3.4"]
                  [com.github.jezza/toml "1.2-java-8"]
                  [com.google.code.gson/gson "2.8.6"]

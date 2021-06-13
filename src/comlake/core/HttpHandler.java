@@ -90,6 +90,12 @@ public class HttpHandler {
         return error(err, 400);
     }
 
+    /** Create and return an empty directory. **/
+    public Map mkdir() {
+        var json = gson.toJson(Map.of("cid", fs.mkdir()));
+        return respond(200, contentType("application/json"), json);
+    }
+
     /** Ingest data from the given request and return appropriate response. **/
     public Map add(Map<String, String> headers, InputStream body) {
         var outcome = ingestor.add(headers, body);

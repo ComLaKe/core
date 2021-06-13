@@ -35,6 +35,11 @@ public class InterPlanetaryFileSystem implements FileSystem {
         ipfs = new IPFS(multiaddr);
     }
 
+    /** Create an empty directory and return the CID. **/
+    public String mkdir() {
+        return "QmUNLLsPACCz1vLxQVkXqqLX5R1X345qqfHbsf67hvA3Nn";
+    }
+
     /** Add the content of the given stream to IPFS and return the CID. **/
     public String add(InputStream istream) {
         var w = new InputStreamWrapper(istream);
