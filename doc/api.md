@@ -136,6 +136,36 @@ Content-Type: application/json
 [{"cid":"QmbwXK2Wg6npoAusr9MkSduuAViS6dxEQBNzqoixanVtj5","id":"589836fe-c2f7-4d21-a521-688439bc74a4","language":"English","length":1284,"name":"Interjection","source":"https:\/\/wiki.installgentoo.com\/index.php\/Interjection","topics":["Natural language","copypasta"],"type":"application\/x-www-form-urlencoded"}]
 ```
 
+## GET /ls/{cid}
+
+List content of a file system directory.
+
+### Request
+
+In the URI, `cid` specifies the content identifier of the wanted file.
+
+#### Example
+
+List the directory of CID `QmSnuWmxptJZdLJpKRarxBMS2Ju2oANVrgbr2xWbie9b2D`:
+
+```http
+GET /ls/QmSnuWmxptJZdLJpKRarxBMS2Ju2oANVrgbr2xWbie9b2D
+```
+
+### Response
+
+The server must respond with a JSON object of `name: cid` upon success
+or the `error` message in case of an error.
+
+#### Example
+
+```http
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{"albums":"QmUh6QSTxDKX5qoNU1GoogbhTveQQV9JMeQjfFVchAtd5Q","README.txt":"QmP8jTG1m9GSDJLCbeWhVSVgEzCPPwXRdCRuJtQ5Tz9Kc9","build_frontend_index.py":"QmRSxRRu9AoJ23bxb2pFeoAUFXMAdki7RZu2T7e6zHRdu6","_Metadata.json":"QmWXShtJXt6Mw3FH7hVCQvR56xPcaEtSj4YFSGjp2QxA4v","apolloarchivr.py":"QmU7gJi6Bz3jrvbuVfB7zzXStLJrTHf6vWh8ZqkCsTGoRC","frontend":"QmeQtZfwuq6aWRarY9P3L9MWhZ6QTonDe9ahWECGBZjyEJ"}
+```
+
 ## GET /get/{cid}
 
 Stream content from underlying file system.

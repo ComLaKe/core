@@ -5,7 +5,7 @@
             :url "https://www.gnu.org/licenses/agpl-3.0"}
   :repositories [["jitpack" "https://jitpack.io"]]
   :dependencies [[aleph "0.4.6"]
-                 [com.github.ComLake/java-ipfs-http-client "1.3.4"]
+                 [com.github.ComLake/java-ipfs-http-client "1.3.5"]
                  [com.github.jezza/toml "1.2-java-8"]
                  [com.google.code.gson/gson "2.8.6"]
                  [com.mchange/c3p0 "0.9.5.5"]

@@ -120,6 +120,16 @@ public class HttpHandler {
         return respond(200, contentType("application/json"), body);
     }
 
+    /** List content of a file system directory. **/
+    public Map ls(String cid) {
+        var result = fs.ls(cid);
+        if (result == null)
+            return error("not a directory");
+
+        var body = gson.toJson(result);
+        return respond(200, contentType("application/json"), body);
+    }
+
     /**
      * Forward content from underlying distributed filesystem
      * as a Ring response.

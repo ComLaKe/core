@@ -35,6 +35,8 @@
                                                           (:body request))
       (and (= method :post) (= uri "/find")) (.find handler (:body request))
       (and (= method :get)
+           (starts-with? uri "/ls/")) (.ls handler (subs uri 4))
+      (and (= method :get)
            (starts-with? uri "/get/")) (.get handler (subs uri 5))
       :else (HttpHandler/error "unsupported" 404))))
 

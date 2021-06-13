@@ -20,6 +20,7 @@
 package comlake.core.fs;
 
 import java.io.InputStream;
+import java.util.Map;
 
 public interface FileSystem {
     /** Create an empty directory and return the CID. **/
@@ -30,6 +31,9 @@ public interface FileSystem {
      * and return the CID.
     **/
     public String add(InputStream istream);
+
+    /** List the directory content if applicable, otherwise return nil. **/
+    public Map<String, String> ls(String cid);
 
     /**
      * Stream the specified file if given valid content identifier,

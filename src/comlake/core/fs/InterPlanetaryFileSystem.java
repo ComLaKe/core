@@ -21,6 +21,8 @@ package comlake.core.fs;
 
 import java.io.InputStream;
 import java.io.IOException;
+import java.util.Map;
+import static java.util.stream.Collectors.toMap;
 
 import io.ipfs.api.IPFS;
 import static io.ipfs.api.NamedStreamable.InputStreamWrapper;
@@ -47,6 +49,28 @@ public class InterPlanetaryFileSystem implements FileSystem {
             return ipfs.add(w).get(0).hash.toString();
         } catch (NullPointerException e) {
             return null;
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
+    /** List the directory content if applicable, otherwise return nil. **/
+    public Map<String, String> ls(String cid) {
+        try {
+            // TODO: Implement this in the IPFS client library
+            var path = "files/stat?arg=/ipfs/" + cid;
+            var stat = (Map<String, String>) ipfs.retrieveMap(path);
+            if (!stat.get("Type").equals("directory"))
+                return null;
+        } catch (RuntimeException e) {
+            return null; // invalid CID
+        } catch (IOException e) {
+            return null;
+        }
+
+        try {
+            return ipfs.ls(fromBase58(cid)).stream().collect(toMap(
+                node -> node.name.get(), node -> node.hash.toString()));
         } catch (IOException e) {
             return null;
         }
