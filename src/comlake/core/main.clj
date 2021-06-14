@@ -30,16 +30,16 @@
   (let [method (:request-method request)
         uri (:uri request)]
     (cond
-      (and (= method :post) (= uri "/mkdir")) (.mkdir handler)
-      (and (= method :post) (= uri "/save")) (.save handler (:body request))
+      (and (= method :post) (= uri "/dir")) (.mkdir handler)
+      (and (= method :post) (= uri "/file")) (.save handler (:body request))
       (and (= method :post) (= uri "/cp")) (.cp handler (:body request))
       (and (= method :post) (= uri "/add")) (.add handler (:headers request)
                                                           (:body request))
       (and (= method :post) (= uri "/find")) (.find handler (:body request))
       (and (= method :get)
-           (starts-with? uri "/ls/")) (.ls handler (subs uri 4))
+           (starts-with? uri "/dir/")) (.ls handler (subs uri 5))
       (and (= method :get)
-           (starts-with? uri "/get/")) (.get handler (subs uri 5))
+           (starts-with? uri "/file/")) (.get handler (subs uri 6))
       :else (HttpHandler/error "unsupported" 404))))
 
 (defn make-handler

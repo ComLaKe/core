@@ -1,5 +1,16 @@
 # HTTP API Reference
 
+Table of content:
+
+* [POST /dir](#post-dir)
+* [POST /file](#post-file)
+* [POST /cp](#post-cp)
+* [POST /add](#post-add)
+* [POST /update](#post-add)
+* [POST /find](#post-find)
+* [GET /dir/{cid}](#get-dir-cid-)
+* [GET /file/{cid}](#get-file-cid-)
+
 ## Status Codes
 
 HTTP status codes used by the core API are simple:
@@ -8,7 +19,7 @@ HTTP status codes used by the core API are simple:
 * 400 Bad Request: Malformed request was received.
 * 404 Not Found: The endpoint does not exist.
 
-## POST /mkdir
+## POST /dir
 
 Create an empty directory.
 
@@ -19,7 +30,7 @@ No input is required.
 #### Example
 
 ```http
-POST /mkdir
+POST /dir
 ```
 
 ### Response
@@ -36,7 +47,7 @@ Content-Type: application/json
 {"cid":"QmUNLLsPACCz1vLxQVkXqqLX5R1X345qqfHbsf67hvA3Nn"}
 ```
 
-## POST /save
+## POST /file
 
 Add the file to the underlying file system.
 
@@ -51,7 +62,7 @@ The following headers are required:
 #### Example
 
 ```http
-POST /add HTTP/1.1
+POST /file HTTP/1.1
 Accept: application/json
 Content-Length: 1284
 Content-Type: text/plain
@@ -232,7 +243,7 @@ Content-Type: application/json
 [{"cid":"QmbwXK2Wg6npoAusr9MkSduuAViS6dxEQBNzqoixanVtj5","id":"589836fe-c2f7-4d21-a521-688439bc74a4","language":"English","length":1284,"name":"Interjection","source":"https:\/\/wiki.installgentoo.com\/index.php\/Interjection","topics":["Natural language","copypasta"],"type":"application\/x-www-form-urlencoded"}]
 ```
 
-## GET /ls/{cid}
+## GET /dir/{cid}
 
 List content of a file system directory.
 
@@ -245,7 +256,7 @@ In the URI, `cid` specifies the content identifier of the wanted file.
 List the directory of CID `QmSnuWmxptJZdLJpKRarxBMS2Ju2oANVrgbr2xWbie9b2D`:
 
 ```http
-GET /ls/QmSnuWmxptJZdLJpKRarxBMS2Ju2oANVrgbr2xWbie9b2D
+GET /dir/QmSnuWmxptJZdLJpKRarxBMS2Ju2oANVrgbr2xWbie9b2D
 ```
 
 ### Response
@@ -262,7 +273,7 @@ Content-Type: application/json
 {"albums":"QmUh6QSTxDKX5qoNU1GoogbhTveQQV9JMeQjfFVchAtd5Q","README.txt":"QmP8jTG1m9GSDJLCbeWhVSVgEzCPPwXRdCRuJtQ5Tz9Kc9","build_frontend_index.py":"QmRSxRRu9AoJ23bxb2pFeoAUFXMAdki7RZu2T7e6zHRdu6","_Metadata.json":"QmWXShtJXt6Mw3FH7hVCQvR56xPcaEtSj4YFSGjp2QxA4v","apolloarchivr.py":"QmU7gJi6Bz3jrvbuVfB7zzXStLJrTHf6vWh8ZqkCsTGoRC","frontend":"QmeQtZfwuq6aWRarY9P3L9MWhZ6QTonDe9ahWECGBZjyEJ"}
 ```
 
-## GET /get/{cid}
+## GET /file/{cid}
 
 Stream content from underlying file system.
 
@@ -275,7 +286,7 @@ In the URI, `cid` specifies the content identifier of the wanted file.
 Stream the file of content ID `QmbwXK2Wg6npoAusr9MkSduuAViS6dxEQBNzqoixanVtj5`:
 
 ```http
-GET /get/QmbwXK2Wg6npoAusr9MkSduuAViS6dxEQBNzqoixanVtj5
+GET /file/QmbwXK2Wg6npoAusr9MkSduuAViS6dxEQBNzqoixanVtj5
 ```
 
 ### Response

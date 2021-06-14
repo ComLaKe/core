@@ -64,14 +64,14 @@
   ([url options] (http/post url (assoc options :throw-exceptions? false)))
   ([url] (http-post url {})))
 
-(deftest post-mkdir
+(deftest post-dir
   (with-server
-    (let [response @(http/post (make-url "/mkdir"))]
+    (let [response @(http/post (make-url "/dir"))]
       (is (and (= 200 (:status response))
                (= empty-dir-cid (get (json-body response) "cid")))))))
 
-(deftest post-save
-  (let [url (make-url "/save")
+(deftest post-file
+  (let [url (make-url "/file")
         headers {:content-length (.length (file interjection))
                  :content-type "text/plain"}]
     (with-server
@@ -152,27 +152,27 @@
 (deftest get-ls
   (with-server
     (testing "success"
-      (let [response @(http-get (make-url (str "/ls/" init-dir-cid)))]
+      (let [response @(http-get (make-url (str "/dir/" init-dir-cid)))]
         (is (and (= 200 (:status response))
                  (= init-dir (json-body response))))))
     (testing "not directory"
-      (let [response @(http-get (make-url (str "/ls/" interjection-cid)))]
+      (let [response @(http-get (make-url (str "/dir/" interjection-cid)))]
         (is (and (= 400 (:status response))
                  (= "not a directory" (get (json-body response) "error"))))))
     (testing "not CID"
-      (let [response @(http-get (make-url "/ls/this-cid-does-not-exist"))]
+      (let [response @(http-get (make-url "/dir/this-cid-does-not-exist"))]
         (is (and (= 400 (:status response))
                  (= "not a directory" (get (json-body response) "error"))))))))
 
 (deftest get-get
   (with-server
     (testing "success"
-      (let [response @(http-get (make-url (str "/get/" interjection-cid)))]
+      (let [response @(http-get (make-url (str "/file/" interjection-cid)))]
         (is (and (= 200 (:status response))
                  (= (slurp (:body response))
                     (slurp interjection))))))
     (testing "not found"
-      (let [response @(http-get (make-url "/get/this-cid-does-not-exist"))]
+      (let [response @(http-get (make-url "/file/this-cid-does-not-exist"))]
         (is (and (= 404 (:status response))
                  (= "content not found"
                     (get (json-body response) "error"))))))))
