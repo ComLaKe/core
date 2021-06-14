@@ -22,6 +22,7 @@ package comlake.core.fs;
 import java.io.InputStream;
 import java.io.IOException;
 import java.util.Map;
+import static java.util.UUID.randomUUID;
 import static java.util.stream.Collectors.toMap;
 
 import io.ipfs.api.IPFS;
@@ -54,19 +55,51 @@ public class InterPlanetaryFileSystem implements FileSystem {
         }
     }
 
-    /** List the directory content if applicable, otherwise return nil. **/
-    public Map<String, String> ls(String cid) {
+    /** Retrieve content status. **/
+    private Map<String, String> stat(String path) {
         try {
             // TODO: Implement this in the IPFS client library
-            var path = "files/stat?arg=/ipfs/" + cid;
-            var stat = (Map<String, String>) ipfs.retrieveMap(path);
-            if (!stat.get("Type").equals("directory"))
-                return null;
+            return ipfs.retrieveMap("files/stat?arg="+path);
         } catch (RuntimeException e) {
             return null; // invalid CID
         } catch (IOException e) {
             return null;
         }
+    }
+
+    /** Check if the given CID is of a directory. **/
+    private Boolean isdir(String path) {
+        var status = stat(path);
+        return status != null && status.get("Type").equals("directory");
+    }
+
+    /**
+     * Copy src into dest/path and return the new directory's CID.
+     *
+     * Return null if dest isn't a directory.
+    **/
+    public String cp(String src, String dest, String path) {
+        if (!isdir("/ipfs/"+dest))
+            return null;
+
+        var tmp = "/" + randomUUID().toString();
+        try {
+            // TODO: Implement this in the IPFS client library
+            ipfs.retrieve("files/cp?arg=/ipfs/"+dest+"&arg="+tmp);
+            ipfs.retrieve("files/cp?arg=/ipfs/"+src+"&arg="+tmp+"/"+path);
+            var cid = stat(tmp).get("Hash");
+            ipfs.pin.add(fromBase58(cid));
+            ipfs.retrieve("files/rm?arg="+tmp+"&force=true");
+            return cid;
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
+    /** List the directory content if applicable, otherwise return nil. **/
+    public Map<String, String> ls(String cid) {
+        if (!isdir("/ipfs/"+cid))
+            return null;
 
         try {
             return ipfs.ls(fromBase58(cid)).stream().collect(toMap(

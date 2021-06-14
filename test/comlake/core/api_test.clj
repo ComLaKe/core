@@ -26,16 +26,18 @@
             [comlake.core.main :refer [-main]]))
 
 (def port 42069)
+(def init-dir
+  {"help" "QmY5heUM5qgRubMDD1og9fhCPA6QdkMp3QCwd4s7gJsyE7"
+   "contact" "QmYCvbfNbCwFR45HiNP45rwJgvatpiW38D961L5qAhUM5Y"
+   "about" "QmZTR5bcpQD7cFgTorqxZDYaew1Wqgfbd2ud9QqGPAkK2V"
+   "quick-start" "QmdncfsVm2h5Kqq9hPmU7oAVX2zTSVP3L869tgTbPYnsha"
+   "readme" "QmPZ9gcCEpqKTo6aq61g2nXGUhM4iCL3ewB6LDXZCtioEB"
+   "security-notes" "QmTumTjvcYCAvRRwQ8sDRxh8ezmrcr88YFU7iYNroGGTBZ"})
+(def init-dir-cid "QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG")
 (def interjection (resource "test/Interjection"))
 (def interjection-cid "QmbwXK2Wg6npoAusr9MkSduuAViS6dxEQBNzqoixanVtj5")
-(def apollo
-  {"albums" "QmUh6QSTxDKX5qoNU1GoogbhTveQQV9JMeQjfFVchAtd5Q"
-   "README.txt" "QmP8jTG1m9GSDJLCbeWhVSVgEzCPPwXRdCRuJtQ5Tz9Kc9"
-   "build_frontend_index.py" "QmRSxRRu9AoJ23bxb2pFeoAUFXMAdki7RZu2T7e6zHRdu6"
-   "_Metadata.json" "QmWXShtJXt6Mw3FH7hVCQvR56xPcaEtSj4YFSGjp2QxA4v"
-   "apolloarchivr.py" "QmU7gJi6Bz3jrvbuVfB7zzXStLJrTHf6vWh8ZqkCsTGoRC"
-   "frontend" "QmeQtZfwuq6aWRarY9P3L9MWhZ6QTonDe9ahWECGBZjyEJ"})
-(def apollo-cid "QmSnuWmxptJZdLJpKRarxBMS2Ju2oANVrgbr2xWbie9b2D")
+(def combined-dir-cid "QmPao7zTNvuqH2pAVUgquYXgEhqoiTBpdjU7AwgZvsta9r")
+(def empty-dir-cid "QmUNLLsPACCz1vLxQVkXqqLX5R1X345qqfHbsf67hvA3Nn")
 (def json-body (comp json/read reader :body))
 
 (defn make-url
@@ -66,8 +68,7 @@
   (with-server
     (let [response @(http/post (make-url "/mkdir"))]
       (is (and (= 200 (:status response))
-               (= "QmUNLLsPACCz1vLxQVkXqqLX5R1X345qqfHbsf67hvA3Nn"
-                  (get (json-body response) "cid")))))))
+               (= empty-dir-cid (get (json-body response) "cid")))))))
 
 (deftest post-save
   (let [url (make-url "/save")
@@ -78,13 +79,28 @@
         (with-open [stream (input-stream interjection)]
           (let [response @(http/post url {:headers headers :body stream})]
             (is (and (= 200 (:status response))
-                     (= "QmbwXK2Wg6npoAusr9MkSduuAViS6dxEQBNzqoixanVtj5"
-                        (get (json-body response) "cid")))))))
+                     (= interjection-cid (get (json-body response) "cid")))))))
       (testing "empty data"
         (let [response @(http-post url {:headers (assoc headers
                                                         :content-length 0)})]
           (is (and (= 400 (:status response))
                    (= "empty data" (get (json-body response) "error")))))))))
+
+(deftest post-cp
+  (with-server
+    (testing "success"
+      (let [args {:src interjection-cid :dest init-dir-cid :path "interjection"}
+            response @(http-post (make-url "/cp")
+                                 {:body (json/write-str args)})]
+        (is (and (= 200 (:status response))
+                 (= combined-dir-cid (get (json-body response) "cid"))))))
+    (testing "dest not directory"
+      (let [args {:src init-dir-cid :dest interjection-cid :path "interjection"}
+            response @(http-post (make-url "/cp")
+                                 {:body (json/write-str args)})]
+        (is (and (= 400 (:status response))
+                 (= "dest is not a directory"
+                    (get (json-body response) "error"))))))))
 
 (deftest post-add
   (let [url (make-url "/add")
@@ -100,8 +116,7 @@
         (with-open [stream (input-stream interjection)]
           (let [response @(http/post url {:headers headers :body stream})]
             (is (and (= 200 (:status response))
-                     (= "QmbwXK2Wg6npoAusr9MkSduuAViS6dxEQBNzqoixanVtj5"
-                        (get (json-body response) "cid")))))))
+                     (= interjection-cid (get (json-body response) "cid")))))))
       (testing "empty data"
         (let [response @(http-post url {:headers (assoc headers
                                                         :content-length 0)})]
@@ -137,9 +152,9 @@
 (deftest get-ls
   (with-server
     (testing "success"
-      (let [response @(http-get (make-url (str "/ls/" apollo-cid)))]
+      (let [response @(http-get (make-url (str "/ls/" init-dir-cid)))]
         (is (and (= 200 (:status response))
-                 (= apollo (json-body response))))))
+                 (= init-dir (json-body response))))))
     (testing "not directory"
       (let [response @(http-get (make-url (str "/ls/" interjection-cid)))]
         (is (and (= 400 (:status response))

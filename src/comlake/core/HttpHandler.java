@@ -107,6 +107,18 @@ public class HttpHandler {
         return respond(200, contentType("application/json"), json);
     }
 
+    /** Copy file inside a directory. **/
+    public Map cp(InputStream body) {
+        var reader = new InputStreamReader(body);
+        var args = (Map<String, String>) gson.fromJson(reader, Map.class);
+        var cid = fs.cp(args.get("src"), args.get("dest"), args.get("path"));
+        if (cid == null)
+            return error("dest is not a directory");
+
+        var json = gson.toJson(Map.of("cid", cid));
+        return respond(200, contentType("application/json"), json);
+    }
+
     /** Ingest data from the given request and return appropriate response. **/
     public Map add(Map<String, String> headers, InputStream body) {
         var outcome = ingestor.add(headers, body);

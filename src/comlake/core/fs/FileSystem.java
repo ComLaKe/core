@@ -26,6 +26,9 @@ public interface FileSystem {
     /** Create an empty directory and return the CID. **/
     public String mkdir();
 
+    /** Copy src into dest/path and return the new directory's CID. **/
+    public String cp(String src, String dest, String path);
+
     /**
      * Add the content of the given stream to underlying storage
      * and return the CID.

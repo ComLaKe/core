@@ -91,6 +91,47 @@ Content-Type: application/json
 {"cid":"QmbwXK2Wg6npoAusr9MkSduuAViS6dxEQBNzqoixanVtj5"}
 ```
 
+## POST /cp
+
+Copy file or directory inside a directory.
+
+### Request
+
+The request body must be a JSON object with the following fields:
+
+* `src`: CID of source file or directory
+* `dest`: CID of destination directory
+* `path`: relative path inside of `dest`
+
+#### Example
+
+Copy `QmbwXK2Wg6npoAusr9MkSduuAViS6dxEQBNzqoixanVtj5`
+to `QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG/interjection`:
+
+```http
+POST /find HTTP/1.1
+Accept: application/json
+Content-Type: application/json
+
+{"src": "QmbwXK2Wg6npoAusr9MkSduuAViS6dxEQBNzqoixanVtj5",
+ "dest": "QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG",
+ "path": "interjection"}
+```
+
+### Response
+
+The call to this endpoint will return a body in JSON containing either the `cid`
+of the resulting directory on success or the `error` message upon errors.
+
+#### Example
+
+```http
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{"cid":"QmPao7zTNvuqH2pAVUgquYXgEhqoiTBpdjU7AwgZvsta9r"}
+```
+
 ## POST /add
 
 Add the file along with its metadata to the data lake.
