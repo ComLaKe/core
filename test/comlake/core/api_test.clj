@@ -69,6 +69,23 @@
                (= "QmUNLLsPACCz1vLxQVkXqqLX5R1X345qqfHbsf67hvA3Nn"
                   (get (json-body response) "cid")))))))
 
+(deftest post-save
+  (let [url (make-url "/save")
+        headers {:content-length (.length (file interjection))
+                 :content-type "text/plain"}]
+    (with-server
+      (testing "success"
+        (with-open [stream (input-stream interjection)]
+          (let [response @(http/post url {:headers headers :body stream})]
+            (is (and (= 200 (:status response))
+                     (= "QmbwXK2Wg6npoAusr9MkSduuAViS6dxEQBNzqoixanVtj5"
+                        (get (json-body response) "cid")))))))
+      (testing "empty data"
+        (let [response @(http-post url {:headers (assoc headers
+                                                        :content-length 0)})]
+          (is (and (= 400 (:status response))
+                   (= "empty data" (get (json-body response) "error")))))))))
+
 (deftest post-add
   (let [url (make-url "/add")
         headers {:accept "application/json"

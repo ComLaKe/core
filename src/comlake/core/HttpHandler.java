@@ -96,6 +96,17 @@ public class HttpHandler {
         return respond(200, contentType("application/json"), json);
     }
 
+    /** Write file to underlying file system. **/
+    public Map save(InputStream body) {
+        // TODO: handle size mismatch
+        var cid = fs.add(body);
+        if (cid == null)
+            return error("empty data");
+
+        var json = gson.toJson(Map.of("cid", cid));
+        return respond(200, contentType("application/json"), json);
+    }
+
     /** Ingest data from the given request and return appropriate response. **/
     public Map add(Map<String, String> headers, InputStream body) {
         var outcome = ingestor.add(headers, body);
