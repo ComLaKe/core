@@ -43,6 +43,9 @@ public class PostgreSQL implements Database {
         "INSERT INTO " + TABLE
         + " (cid, length, type, name, source, topics, optional)"
         + " VALUES (?, ?, ?, ?, ?, ?, ?::json)");
+    private static final String INSERT_CONTENT = (
+        "INSERT INTO content (cid, type)"
+        + " VALUES (?, ?) ON CONFLICT DO NOTHING");
     private static final String INSERT_DATASET = (
         "INSERT INTO dataset"
         + " (file, description, source, topics, extra, parent)"
@@ -96,6 +99,23 @@ public class PostgreSQL implements Database {
         return true;
     }
 
+    /** Insert given file to table content. **/
+    public boolean insertFile(String cid, String type) {
+        try (var conn = pool.getConnection();
+             var statement = conn.prepareStatement(INSERT_CONTENT)) {
+            statement.setObject(1, cid);
+            statement.setObject(2, type);
+        } catch (SQLException e) {
+            return false;
+        }
+        return true;
+    }
+
+    /** Insert given directory to table content. **/
+    public boolean insertDirectory(String cid) {
+        return insertFile(cid, "inode/directory");
+    }
+
     /** Insert given row to table dataset. **/
     public String insertDataset(Map<String, Object> dataset) {
         try (var conn = pool.getConnection();
@@ -114,7 +134,6 @@ public class PostgreSQL implements Database {
             rs.next();
             return String.valueOf(rs.getLong("id"));
         } catch (SQLException e) {
-            System.out.println(e);
             return null;
         }
     }

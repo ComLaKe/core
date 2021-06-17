@@ -31,6 +31,12 @@ public interface Database extends AutoCloseable {
     /** Insert given row to underlying database. **/
     public boolean insert(Metadata metadata);
 
+    /** Insert given file to table content. **/
+    public boolean insertFile(String cid, String type);
+
+    /** Insert given directory to table content. **/
+    public boolean insertDirectory(String cid);
+
     /** Insert given row to table dataset. **/
     public String insertDataset(Map<String, Object> dataset);
 

@@ -8,15 +8,13 @@ CREATE TABLE comlake (id serial primary key,
                       topics text[],
                       optional json);
 DROP TABLE IF EXISTS content CASCADE;
-CREATE TABLE content (id bigserial PRIMARY KEY,
-                      cid text,
+CREATE TABLE content (cid text PRIMARY KEY,
                       length bigint,
                       type text,
-                      name text,
                       extra json);
 DROP TABLE IF EXISTS dataset;
 CREATE TABLE dataset (id bigserial PRIMARY KEY,
-                      file bigint REFERENCES content,
+                      file text REFERENCES content,
                       description text,
                       source text,
                       topics text[],

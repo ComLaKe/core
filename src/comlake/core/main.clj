@@ -31,7 +31,8 @@
         uri (:uri request)]
     (cond
       (and (= method :post) (= uri "/dir")) (.mkdir handler)
-      (and (= method :post) (= uri "/file")) (.save handler (:body request))
+      (and (= method :post) (= uri "/file")) (.save handler (:headers request)
+                                                            (:body request))
       (and (= method :post) (= uri "/cp")) (.cp handler (:body request))
       (and (= method :post) (= uri "/add")) (.add handler (:body request))
       (and (= method :post) (= uri "/find")) (.find handler (:body request))

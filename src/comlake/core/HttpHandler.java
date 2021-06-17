@@ -41,8 +41,6 @@ import comlake.core.fs.FileSystem;
 import comlake.core.fs.InterPlanetaryFileSystem;
 
 public class HttpHandler {
-    static final String[] requiredFields = {"length", "type",
-                                            "name", "source", "topics"};
     static final Gson gson = new Gson();
     static final IFn require = Clojure.var("clojure.core", "require");
 
@@ -92,16 +90,21 @@ public class HttpHandler {
 
     /** Create and return an empty directory. **/
     public Map mkdir() {
-        var json = gson.toJson(Map.of("cid", fs.mkdir()));
+        var cid = fs.mkdir();
+        db.insertDirectory(cid); // TODO: check status
+        var json = gson.toJson(Map.of("cid", cid));
         return respond(200, contentType("application/json"), json);
     }
 
     /** Write file to underlying file system. **/
-    public Map save(InputStream body) {
+    public Map save(Map<String, String> headers, InputStream body) {
         // TODO: handle size mismatch
         var cid = fs.add(body);
         if (cid == null)
             return error("empty data");
+
+        var type = headers.get("content-type"); // TODO: check null
+        db.insertFile(cid, type); // TODO: check status
 
         var json = gson.toJson(Map.of("cid", cid));
         return respond(200, contentType("application/json"), json);
