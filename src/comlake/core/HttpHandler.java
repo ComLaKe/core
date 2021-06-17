@@ -120,12 +120,20 @@ public class HttpHandler {
     }
 
     /** Ingest data from the given request and return appropriate response. **/
-    public Map add(Map<String, String> headers, InputStream body) {
-        var outcome = ingestor.add(headers, body);
-        if (!outcome.ok)
-            return error(outcome.error);
+    public Map add(InputStream body) {
+        var reader = new InputStreamReader(body);
+        var dataset = (Map<String, Object>) gson.fromJson(reader, Map.class);
+        var missing = Arrays.asList("file", "description", "source", "topics")
+            .stream().filter(field -> dataset.get(field) == null)
+            .collect(Collectors.toList());
+        if (!missing.isEmpty())
+            return error(Map.of("missing-metadata", missing));
 
-        var json = gson.toJson(Map.of("cid", outcome.result));
+        var id = db.insertDataset(dataset);
+        if (id == null)
+            return error(null);
+
+        var json = gson.toJson(Map.of("id", id));
         return respond(200, contentType("application/json"), json);
     }
 

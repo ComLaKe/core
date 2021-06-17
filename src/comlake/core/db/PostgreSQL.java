@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import static java.sql.Statement.RETURN_GENERATED_KEYS;
 
 import com.google.gson.Gson;
 
@@ -42,6 +43,10 @@ public class PostgreSQL implements Database {
         "INSERT INTO " + TABLE
         + " (cid, length, type, name, source, topics, optional)"
         + " VALUES (?, ?, ?, ?, ?, ?, ?::json)");
+    private static final String INSERT_DATASET = (
+        "INSERT INTO dataset"
+        + " (file, description, source, topics, extra, parent)"
+        + " VALUES (?, ?, ?, ?, ?::json, ?)");
     private static final String CLEAR = "TRUNCATE " + TABLE;
     private static final Gson gson = new Gson();
     private ComboPooledDataSource pool;
@@ -89,6 +94,29 @@ public class PostgreSQL implements Database {
             return false;
         }
         return true;
+    }
+
+    /** Insert given row to table dataset. **/
+    public String insertDataset(Map<String, Object> dataset) {
+        try (var conn = pool.getConnection();
+             var statement = conn.prepareStatement(INSERT_DATASET,
+                                                   RETURN_GENERATED_KEYS)) {
+            statement.setObject(1, dataset.remove("file"));
+            statement.setObject(2, dataset.remove("description"));
+            statement.setObject(3, dataset.remove("source"));
+            // No, I don't want to talk about this.
+            var topics = (ArrayList<String>) dataset.remove("topics");
+            statement.setObject(4, String.join(",", topics).split(","));
+            statement.setObject(5, gson.toJson(dataset));
+            statement.setObject(6, null);
+            statement.executeUpdate();
+            var rs = statement.getGeneratedKeys();
+            rs.next();
+            return String.valueOf(rs.getLong("id"));
+        } catch (SQLException e) {
+            System.out.println(e);
+            return null;
+        }
     }
 
     /** Filter for rows matching predicate, return null on errors. **/
