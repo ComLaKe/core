@@ -35,6 +35,7 @@
                                                             (:body request))
       (and (= method :post) (= uri "/cp")) (.cp handler (:body request))
       (and (= method :post) (= uri "/add")) (.add handler (:body request))
+      (and (= method :post) (= uri "/update")) (.update handler (:body request))
       (and (= method :post) (= uri "/find")) (.find handler (:body request))
       (and (= method :get)
            (starts-with? uri "/dir/")) (.ls handler (subs uri 5))

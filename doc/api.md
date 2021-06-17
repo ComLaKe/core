@@ -166,10 +166,43 @@ Extra fields will be ingested and used for later indexing.
 POST /add HTTP/1.1
 Accept: application/json
 Content-Type: application/json
-{"file": 42,
- "description": "The answer of the universe",
- "source": "isbn:0330258648",
- "topics": ["guide", "galaxy"]}
+{"file": "QmbwXK2Wg6npoAusr9MkSduuAViS6dxEQBNzqoixanVtj5",
+ "description": "Interjection",
+ "source": "https://wiki.installgentoo.com/index.php/Interjection",
+ "topics": ["Natural language", "copypasta"]}
+```
+
+### Response
+
+The call to this endpoint will return a body in JSON containing either
+the automatically generated dataset `id` on success or the `error` message
+upon errors.
+
+#### Example
+
+```http
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{"id":"42"}
+```
+
+## POST /update
+
+Add the updated dataset to the lake.
+
+### Request
+
+The request body must be a JSON object containing the field `parent`.
+Other fields with be merged with the parent dataset entry.
+
+#### Example
+
+```http
+POST /add HTTP/1.1
+Accept: application/json
+Content-Type: application/json
+{"parent": "42", "language": "English"}
 ```
 
 ### Response

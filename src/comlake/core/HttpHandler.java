@@ -140,6 +140,26 @@ public class HttpHandler {
         return respond(200, contentType("application/json"), json);
     }
 
+    /** Ingest data from the given request and return appropriate response. **/
+    public Map update(InputStream body) {
+        var reader = new InputStreamReader(body);
+        var dataset = (Map<String, Object>) gson.fromJson(reader, Map.class);
+        var missing = Arrays.asList("file", "description", "source",
+                                    "topics", "parent").stream()
+            .filter(field -> dataset.get(field) == null)
+            .collect(Collectors.toList());
+        // FIXME: fallback to parent instead of error
+        if (!missing.isEmpty())
+            return error(Map.of("missing-metadata", missing));
+
+        var id = db.insertDataset(dataset);
+        if (id == null)
+            return error(null);
+
+        var json = gson.toJson(Map.of("id", id));
+        return respond(200, contentType("application/json"), json);
+    }
+
     /** Return query result as a http response. **/
     public Map find(InputStream ast) {
         var predicate = (String) parseAst.invoke(new InputStreamReader(ast));
