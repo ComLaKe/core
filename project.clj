@@ -1,4 +1,4 @@
-(defproject comlake.core "0.3.0-SNAPSHOT"
+(defproject comlake.core "0.3.0"
   :description "USTH data lake core"
   :url "https://github.com/ComLake/comlake.core"
   :license {:name "GNU Affero General Public License 3.0"
