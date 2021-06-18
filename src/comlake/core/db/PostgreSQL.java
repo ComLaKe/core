@@ -22,8 +22,10 @@ package comlake.core.db;
 import java.math.BigInteger;
 import java.io.InputStream;
 import java.beans.PropertyVetoException;
+import java.sql.Array;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,16 +35,9 @@ import com.google.gson.Gson;
 
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 
-import comlake.core.db.BaseMetadata;
 import comlake.core.db.Database;
-import comlake.core.db.Metadata;
 
 public class PostgreSQL implements Database {
-    private static final String TABLE = "comlake";
-    private static final String INSERT = (
-        "INSERT INTO " + TABLE
-        + " (cid, length, type, name, source, topics, optional)"
-        + " VALUES (?, ?, ?, ?, ?, ?, ?::json)");
     private static final String INSERT_CONTENT = (
         "INSERT INTO content (cid, type)"
         + " VALUES (?, ?) ON CONFLICT DO NOTHING");
@@ -52,7 +47,6 @@ public class PostgreSQL implements Database {
     private static final String UPDATE_DATASET = (
         "INSERT INTO dataset (file, description, source, topics, extra, parent)"
         + " SELECT %s, %s, %s, %s, %s, id FROM dataset WHERE id = %d");
-    private static final String CLEAR = "TRUNCATE " + TABLE;
     private static final Gson gson = new Gson();
     private ComboPooledDataSource pool;
 
@@ -71,34 +65,6 @@ public class PostgreSQL implements Database {
 
     public void close() {
         pool.close();
-    }
-
-    /** Clear the PostgreSQL table. **/
-    public boolean clear() {
-        try (var conn = pool.getConnection()) {
-            conn.createStatement().executeQuery(CLEAR);
-        } catch (SQLException e) {
-            return false;
-        }
-        return true;
-    }
-
-    /** Insert given row to PostgreSQL. **/
-    public boolean insert(Metadata metadata) {
-        try (var conn = pool.getConnection();
-             var statement = conn.prepareStatement(INSERT)) {
-            statement.setObject(1, metadata.cid);
-            statement.setObject(2, metadata.length);
-            statement.setObject(3, metadata.type);
-            statement.setObject(4, metadata.name);
-            statement.setObject(5, metadata.source);
-            statement.setObject(6, metadata.topics);
-            statement.setObject(7, gson.toJson(metadata.optional));
-            statement.executeUpdate();
-        } catch (SQLException e) {
-            return false;
-        }
-        return true;
     }
 
     /** Insert given file to table content. **/
@@ -175,23 +141,24 @@ public class PostgreSQL implements Database {
     }
 
     /** Filter for rows matching predicate, return null on errors. **/
-    public List<Metadata> search(String predicate) {
-        var result = new ArrayList<Metadata>();
-        var query = "SELECT * FROM " + TABLE + " WHERE " + predicate;
-        try (var conn = pool.getConnection()) {
-            var rs = conn.createStatement().executeQuery(query);
+    public ArrayList<Map<String, Object>> search(String predicate) {
+        var result = new ArrayList<Map<String, Object>>();
+        var query = "SELECT * FROM dataset WHERE " + predicate;
+        try (var conn = pool.getConnection();
+             var statement = conn.createStatement()) {
+            var rs = statement.executeQuery(query);
             while (rs.next()) {
-                var base = new BaseMetadata(
-                    BigInteger.valueOf(rs.getLong("length")),
-                    rs.getString("type"),
-                    rs.getString("name"),
-                    rs.getString("source"),
-                    (String[]) rs.getArray("topics").getArray(),
-                    // This is stupid: it'll get converted back to JSON later.
-                    gson.fromJson(rs.getString("optional"), Map.class));
-                result.add(Metadata.of(base, rs.getString("cid")));
+                var row = gson.fromJson(rs.getString("extra"), Map.class);
+                row.put("id", String.valueOf(rs.getLong("id")));
+                row.put("file", rs.getString("file"));
+                row.put("description", rs.getString("description"));
+                row.put("source", rs.getString("source"));
+                row.put("topics", ((Array) rs.getObject("topics")).getArray());
+                row.put("parent", String.valueOf(rs.getLong("parent")));
+                result.add(row);
             }
         } catch (SQLException e) {
+            System.out.println(e);
             return null;
         }
         return result;

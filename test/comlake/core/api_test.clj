@@ -125,11 +125,11 @@
   (let [url (make-url "/find")
         options {:accept :json
                  :content-type :json
-                 :body (json/write-str ["<" ["." "length"] 0])}]
+                 :body (json/write-str ["~" ["." "file"] "^$"])}]
     (testing "success"
       (let [response @(http-post url options)]
         (is (and (= 200 (:status response))
-                 ;; Obviously length cannot be negative.
+                 ;; Obviously file CID cannot be empty
                  (empty? (json-body response))))))
     (testing "malformed query"
       (let [override {:body (json/write-str ["8=D" "foo" "bar"])}

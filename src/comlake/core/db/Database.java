@@ -19,18 +19,11 @@
 
 package comlake.core.db;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import comlake.core.db.Metadata;
-
 public interface Database extends AutoCloseable {
-    /** Clear the table. **/
-    public boolean clear();
-
-    /** Insert given row to underlying database. **/
-    public boolean insert(Metadata metadata);
-
     /** Insert given file to table content. **/
     public boolean insertFile(String cid, String type);
 
@@ -44,5 +37,6 @@ public interface Database extends AutoCloseable {
     public String updateDataset(Map<String, Object> dataset);
 
     /** Filter for rows matching predicate, return null on errors. **/
-    public List<Metadata> search(String predicate);
+    public ArrayList<Map<String, Object>> search(String predicate);
+
 }

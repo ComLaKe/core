@@ -34,7 +34,6 @@ import clojure.lang.IFn;
 import com.google.gson.Gson;
 
 import comlake.core.Configuration;
-import comlake.core.Ingestor;
 import comlake.core.db.Database;
 import comlake.core.db.PostgreSQL;
 import comlake.core.fs.FileSystem;
@@ -47,7 +46,6 @@ public class HttpHandler {
     private IFn parseAst;
     private FileSystem fs;
     private Database db;
-    private Ingestor ingestor;
 
     public HttpHandler(Configuration cfg) {
         require.invoke(Clojure.read("comlake.core.db.qast"));
@@ -56,7 +54,6 @@ public class HttpHandler {
         // TODO: stop hard-coding these
         fs = new InterPlanetaryFileSystem(cfg.ipfsMultiAddr);
         db = new PostgreSQL(cfg.psqlUrl, cfg.psqlUser, cfg.psqlPasswd);
-        ingestor = new Ingestor(fs, db);
     }
 
     /** Construct a Ring response. **/
