@@ -45,15 +45,6 @@
   [endpoint]
   (str "http://localhost:" port endpoint))
 
-(defmacro with-server
-  "Manage a test server for the code in body."
-  [& body]
-  `(let [server# (-main (str port))]
-     ;; TODO: add mock data
-     (try ~@body
-          (finally (.close server#)
-                   (wait-for-close server#)))))
-
 (defn http-get
   "Call aleph.http/get with :throw-exceptions? disabled."
   ([url options] (http/get url (assoc options :throw-exceptions? false)))
@@ -65,42 +56,39 @@
   ([url] (http-post url {})))
 
 (deftest post-dir
-  (with-server
-    (let [response @(http-post (make-url "/dir"))]
-      (is (and (= 200 (:status response))
-               (= empty-dir-cid (get (json-body response) "cid")))))))
+  (let [response @(http-post (make-url "/dir"))]
+    (is (and (= 200 (:status response))
+             (= empty-dir-cid (get (json-body response) "cid"))))))
 
 (deftest post-file
   (let [url (make-url "/file")
         headers {:content-length (.length (file interjection))
                  :content-type "text/plain"}]
-    (with-server
-      (testing "success"
-        (with-open [stream (input-stream interjection)]
-          (let [response @(http-post url {:headers headers :body stream})]
-            (is (and (= 200 (:status response))
-                     (= interjection-cid (get (json-body response) "cid")))))))
-      (testing "empty data"
-        (let [response @(http-post url {:headers (assoc headers
-                                                        :content-length 0)})]
-          (is (and (= 400 (:status response))
-                   (= "empty data" (get (json-body response) "error")))))))))
+    (testing "success"
+      (with-open [stream (input-stream interjection)]
+        (let [response @(http-post url {:headers headers :body stream})]
+          (is (and (= 200 (:status response))
+                   (= interjection-cid (get (json-body response) "cid")))))))
+    (testing "empty data"
+      (let [response @(http-post url {:headers (assoc headers
+                                                      :content-length 0)})]
+        (is (and (= 400 (:status response))
+                 (= "empty data" (get (json-body response) "error"))))))))
 
 (deftest post-cp
-  (with-server
-    (testing "success"
-      (let [args {:src interjection-cid :dest init-dir-cid :path "interjection"}
-            response @(http-post (make-url "/cp")
-                                 {:body (json/write-str args)})]
-        (is (and (= 200 (:status response))
-                 (= combined-dir-cid (get (json-body response) "cid"))))))
-    (testing "dest not directory"
-      (let [args {:src init-dir-cid :dest interjection-cid :path "interjection"}
-            response @(http-post (make-url "/cp")
-                                 {:body (json/write-str args)})]
-        (is (and (= 400 (:status response))
-                 (= "dest is not a directory"
-                    (get (json-body response) "error"))))))))
+  (testing "success"
+    (let [args {:src interjection-cid :dest init-dir-cid :path "interjection"}
+          response @(http-post (make-url "/cp")
+                               {:body (json/write-str args)})]
+      (is (and (= 200 (:status response))
+               (= combined-dir-cid (get (json-body response) "cid"))))))
+  (testing "dest not directory"
+    (let [args {:src init-dir-cid :dest interjection-cid :path "interjection"}
+          response @(http-post (make-url "/cp")
+                               {:body (json/write-str args)})]
+      (is (and (= 400 (:status response))
+               (= "dest is not a directory"
+                  (get (json-body response) "error")))))))
 
 (deftest post-add
   (let [url (make-url "/add")
@@ -110,79 +98,87 @@
               "topics" ["Natural language" "copypasta"]
               "language" "English"}
         less (dissoc full "source")]
-    (with-server
-      (testing "success"
-        (let [response @(http-post url {:body (json/write-str full)})]
-          (is (= 200 (:status response)))))
-      (testing "missing metadata"
-        (let [response @(http-post url {:body (json/write-str less)})]
-            (is (and (= 400 (:status response))
-                     (= {"missing-metadata" ["source"]}
-                        (get (json-body response) "error")))))))))
+    (testing "success"
+      (let [response @(http-post url {:body (json/write-str full)})]
+        (is (= 200 (:status response)))))
+    (testing "missing metadata"
+      (let [response @(http-post url {:body (json/write-str less)})]
+        (is (and (= 400 (:status response))
+                 (= {"missing-metadata" ["source"]}
+                    (get (json-body response) "error"))))))))
 
 (deftest post-update
   (let [url (make-url "/update")
         full {"parent" "1"
               "source" "https://wiki.installgentoo.com/wiki/Interjection"}
         less (dissoc full "parent")]
-    (with-server
-      (testing "success"
-        (let [response @(http-post url {:body (json/write-str full)})]
-          (is (= 200 (:status response)))))
-      (testing "orphan"
-        (let [response @(http-post url {:body (json/write-str less)})]
-            (is (and (= 400 (:status response))
-                     (= "missing parent"
-                        (get (json-body response) "error")))))))))
+    (testing "success"
+      (let [response @(http-post url {:body (json/write-str full)})]
+        (is (= 200 (:status response)))))
+    (testing "orphan"
+      (let [response @(http-post url {:body (json/write-str less)})]
+        (is (and (= 400 (:status response))
+                 (= "missing parent"
+                    (get (json-body response) "error"))))))))
 
 (deftest post-find
   (let [url (make-url "/find")
         options {:accept :json
                  :content-type :json
                  :body (json/write-str ["<" ["." "length"] 0])}]
-    (with-server
-      (testing "success"
-        (let [response @(http-post url options)]
-          (is (and (= 200 (:status response))
-                   ;; Obviously length cannot be negative.
-                   (empty? (json-body response))))))
-      (testing "malformed query"
-        (let [override {:body (json/write-str ["8=D" "foo" "bar"])}
-              response @(http-post url (merge options override))]
-          (is (and (= 400 (:status response))
-                   (= "malformed query"
-                      (get (json-body response) "error")))))))))
-
-(deftest get-ls
-  (with-server
     (testing "success"
-      (let [response @(http-get (make-url (str "/dir/" init-dir-cid)))]
+      (let [response @(http-post url options)]
         (is (and (= 200 (:status response))
-                 (= init-dir (json-body response))))))
-    (testing "not directory"
-      (let [response @(http-get (make-url (str "/dir/" interjection-cid)))]
+                 ;; Obviously length cannot be negative.
+                 (empty? (json-body response))))))
+    (testing "malformed query"
+      (let [override {:body (json/write-str ["8=D" "foo" "bar"])}
+            response @(http-post url (merge options override))]
         (is (and (= 400 (:status response))
-                 (= "not a directory" (get (json-body response) "error"))))))
-    (testing "not CID"
-      (let [response @(http-get (make-url "/dir/this-cid-does-not-exist"))]
-        (is (and (= 400 (:status response))
-                 (= "not a directory" (get (json-body response) "error"))))))))
-
-(deftest get-get
-  (with-server
-    (testing "success"
-      (let [response @(http-get (make-url (str "/file/" interjection-cid)))]
-        (is (and (= 200 (:status response))
-                 (= (slurp (:body response))
-                    (slurp interjection))))))
-    (testing "not found"
-      (let [response @(http-get (make-url "/file/this-cid-does-not-exist"))]
-        (is (and (= 404 (:status response))
-                 (= "content not found"
+                 (= "malformed query"
                     (get (json-body response) "error"))))))))
 
-(deftest not-found
-  (with-server
-    (let [response @(http-get (make-url "/this/endpoint/is/unsupported"))]
+(deftest get-dir
+  (testing "success"
+    (let [response @(http-get (make-url (str "/dir/" init-dir-cid)))]
+      (is (and (= 200 (:status response))
+               (= init-dir (json-body response))))))
+  (testing "not directory"
+    (let [response @(http-get (make-url (str "/dir/" interjection-cid)))]
+      (is (and (= 400 (:status response))
+               (= "not a directory" (get (json-body response) "error"))))))
+  (testing "not CID"
+    (let [response @(http-get (make-url "/dir/this-cid-does-not-exist"))]
+      (is (and (= 400 (:status response))
+               (= "not a directory" (get (json-body response) "error")))))))
+
+(deftest get-file
+  (testing "success"
+    (let [response @(http-get (make-url (str "/file/" interjection-cid)))]
+      (is (and (= 200 (:status response))
+               (= (slurp (:body response))
+                  (slurp interjection))))))
+  (testing "not found"
+    (let [response @(http-get (make-url "/file/this-cid-does-not-exist"))]
       (is (and (= 404 (:status response))
-               (= "unsupported" (get (json-body response) "error")))))))
+               (= "content not found"
+                  (get (json-body response) "error")))))))
+
+(deftest not-found
+  (let [response @(http-get (make-url "/this/endpoint/is/unsupported"))]
+    (is (and (= 404 (:status response))
+             (= "unsupported" (get (json-body response) "error"))))))
+
+(defn test-ns-hook []
+  (let [server (-main (str port))]
+    (try (not-found)
+         (post-file)
+         (post-dir)
+         (post-cp)
+         (post-add)
+         (post-update)
+         (post-find)
+         (get-file)
+         (get-dir)
+         (finally (.close server)
+                  (wait-for-close server)))))
