@@ -40,6 +40,9 @@ public interface Database extends AutoCloseable {
     /** Insert given row to table dataset. **/
     public String insertDataset(Map<String, Object> dataset);
 
+    /** Insert updated row to table dataset. **/
+    public String updateDataset(Map<String, Object> dataset);
+
     /** Filter for rows matching predicate, return null on errors. **/
     public List<Metadata> search(String predicate);
 }

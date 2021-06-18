@@ -144,15 +144,10 @@ public class HttpHandler {
     public Map update(InputStream body) {
         var reader = new InputStreamReader(body);
         var dataset = (Map<String, Object>) gson.fromJson(reader, Map.class);
-        var missing = Arrays.asList("file", "description", "source",
-                                    "topics", "parent").stream()
-            .filter(field -> dataset.get(field) == null)
-            .collect(Collectors.toList());
-        // FIXME: fallback to parent instead of error
-        if (!missing.isEmpty())
-            return error(Map.of("missing-metadata", missing));
+        if (!dataset.containsKey("parent"))
+            return error("missing parent");
 
-        var id = db.insertDataset(dataset);
+        var id = db.updateDataset(dataset);
         if (id == null)
             return error(null);
 

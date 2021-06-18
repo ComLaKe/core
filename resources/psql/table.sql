@@ -9,7 +9,6 @@ CREATE TABLE comlake (id serial primary key,
                       optional json);
 DROP TABLE IF EXISTS content CASCADE;
 CREATE TABLE content (cid text PRIMARY KEY,
-                      length bigint,
                       type text,
                       extra json);
 DROP TABLE IF EXISTS dataset;

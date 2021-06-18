@@ -66,7 +66,7 @@
 
 (deftest post-dir
   (with-server
-    (let [response @(http/post (make-url "/dir"))]
+    (let [response @(http-post (make-url "/dir"))]
       (is (and (= 200 (:status response))
                (= empty-dir-cid (get (json-body response) "cid")))))))
 
@@ -77,7 +77,7 @@
     (with-server
       (testing "success"
         (with-open [stream (input-stream interjection)]
-          (let [response @(http/post url {:headers headers :body stream})]
+          (let [response @(http-post url {:headers headers :body stream})]
             (is (and (= 200 (:status response))
                      (= interjection-cid (get (json-body response) "cid")))))))
       (testing "empty data"
@@ -104,32 +104,36 @@
 
 (deftest post-add
   (let [url (make-url "/add")
-        headers {:accept "application/json"
-                 :content-length (.length (file interjection))
-                 :content-type "text/plain"
-                 :x-comlake-name "Interjection"
-                 :x-comlake-source "https://wiki.installgentoo.com"
-                 :x-comlake-topics ["Natural language" "copypasta"]
-                 :x-comlake-language "English"}]
+        full {"file" interjection-cid
+              "description" "Interjection"
+              "source" "https://wiki.installgentoo.com"
+              "topics" ["Natural language" "copypasta"]
+              "language" "English"}
+        less (dissoc full "source")]
     (with-server
       (testing "success"
-        (with-open [stream (input-stream interjection)]
-          (let [response @(http/post url {:headers headers :body stream})]
-            (is (and (= 200 (:status response))
-                     (= interjection-cid (get (json-body response) "cid")))))))
-      (testing "empty data"
-        (let [response @(http-post url {:headers (assoc headers
-                                                        :content-length 0)})]
-          (is (and (= 400 (:status response))
-                   (= "empty data" (get (json-body response) "error"))))))
-      (testing "missing headers"
-        (with-open [stream (input-stream interjection)]
-          (let [options {:headers (dissoc headers :x-comlake-source)
-                         :body stream}
-                response @(http-post url options)]
+        (let [response @(http-post url {:body (json/write-str full)})]
+          (is (= 200 (:status response)))))
+      (testing "missing metadata"
+        (let [response @(http-post url {:body (json/write-str less)})]
             (is (and (= 400 (:status response))
                      (= {"missing-metadata" ["source"]}
-                        (get (json-body response) "error"))))))))))
+                        (get (json-body response) "error")))))))))
+
+(deftest post-update
+  (let [url (make-url "/update")
+        full {"parent" "1"
+              "source" "https://wiki.installgentoo.com/wiki/Interjection"}
+        less (dissoc full "parent")]
+    (with-server
+      (testing "success"
+        (let [response @(http-post url {:body (json/write-str full)})]
+          (is (= 200 (:status response)))))
+      (testing "orphan"
+        (let [response @(http-post url {:body (json/write-str less)})]
+            (is (and (= 400 (:status response))
+                     (= "missing parent"
+                        (get (json-body response) "error")))))))))
 
 (deftest post-find
   (let [url (make-url "/find")

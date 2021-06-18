@@ -47,9 +47,11 @@ public class PostgreSQL implements Database {
         "INSERT INTO content (cid, type)"
         + " VALUES (?, ?) ON CONFLICT DO NOTHING");
     private static final String INSERT_DATASET = (
-        "INSERT INTO dataset"
-        + " (file, description, source, topics, extra, parent)"
-        + " VALUES (?, ?, ?, ?, ?::json, ?)");
+        "INSERT INTO dataset (file, description, source, topics, extra)"
+        + " VALUES (?, ?, ?, ?, ?::json)");
+    private static final String UPDATE_DATASET = (
+        "INSERT INTO dataset (file, description, source, topics, extra, parent)"
+        + " SELECT %s, %s, %s, %s, %s, id FROM dataset WHERE id = %d");
     private static final String CLEAR = "TRUNCATE " + TABLE;
     private static final Gson gson = new Gson();
     private ComboPooledDataSource pool;
@@ -105,6 +107,7 @@ public class PostgreSQL implements Database {
              var statement = conn.prepareStatement(INSERT_CONTENT)) {
             statement.setObject(1, cid);
             statement.setObject(2, type);
+            statement.executeUpdate();
         } catch (SQLException e) {
             return false;
         }
@@ -128,8 +131,41 @@ public class PostgreSQL implements Database {
             var topics = (ArrayList<String>) dataset.remove("topics");
             statement.setObject(4, String.join(",", topics).split(","));
             statement.setObject(5, gson.toJson(dataset));
-            statement.setObject(6, null);
             statement.executeUpdate();
+            var rs = statement.getGeneratedKeys();
+            rs.next();
+            return String.valueOf(rs.getLong("id"));
+        } catch (SQLException e) {
+            return null;
+        }
+    }
+
+    /** Quote SQL string **/
+    private String quote(String s) {
+        return String.format("'%s'", s.replace("'", "''"));
+    }
+
+    /** Insert updated row to table dataset. **/
+    public String updateDataset(Map<String, Object> dataset) {
+        try (var conn = pool.getConnection();
+             var statement = conn.createStatement()) {
+            var parent = (String) dataset.remove("parent");
+            var file = (String) dataset.remove("file");
+            var description = (String) dataset.remove("description");
+            var source = (String) dataset.remove("source");
+            // No, I don't want to talk about this.
+            var topics = (ArrayList<String>) dataset.remove("topics");
+            var query = String.format(
+                UPDATE_DATASET,
+                file == null ? "file" : quote(file),
+                description == null ? "description" : quote(description),
+                source == null ? "source" : quote(source),
+                topics == null ? "topics" : quote(String.format(
+                    "{\"%s\"}", String.join("\",\"", topics))),
+                dataset.isEmpty() ? "extra"
+                                  : quote(gson.toJson(dataset)) + "::json",
+                Long.parseLong(parent));
+            statement.execute(query, RETURN_GENERATED_KEYS);
             var rs = statement.getGeneratedKeys();
             rs.next();
             return String.valueOf(rs.getLong("id"));
