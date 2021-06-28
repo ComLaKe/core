@@ -26,6 +26,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 import clojure.java.api.Clojure;
@@ -33,27 +35,29 @@ import clojure.lang.IFn;
 
 import com.google.gson.Gson;
 
-import comlake.core.Configuration;
 import comlake.core.db.Database;
-import comlake.core.db.PostgreSQL;
 import comlake.core.fs.FileSystem;
-import comlake.core.fs.InterPlanetaryFileSystem;
 
 public class HttpHandler {
     static final Gson gson = new Gson();
     static final IFn require = Clojure.var("clojure.core", "require");
 
     private IFn parseAst;
+    private IFn extractMetadata;
     private FileSystem fs;
     private Database db;
 
-    public HttpHandler(Configuration cfg) {
+    public HttpHandler(FileSystem filesystem, Database database) {
         require.invoke(Clojure.read("comlake.core.db.qast"));
         parseAst = Clojure.var("comlake.core.db.qast", "json-to-psql");
+        require.invoke(Clojure.read("comlake.core.worker.factory"));
 
-        // TODO: stop hard-coding these
-        fs = new InterPlanetaryFileSystem(cfg.ipfsMultiAddr);
-        db = new PostgreSQL(cfg.psqlUrl, cfg.psqlUser, cfg.psqlPasswd);
+        fs = filesystem;
+        db = database;
+
+        var extractor = Clojure.var("comlake.core.worker.factory",
+                                    "metadata-extractor");
+        extractMetadata = (IFn) extractor.invoke(fs, db);
     }
 
     /** Construct a Ring response. **/
@@ -102,6 +106,7 @@ public class HttpHandler {
 
         var type = headers.get("content-type"); // TODO: check null
         db.insertFile(cid, type); // TODO: check status
+        extractMetadata.invoke(cid, type);
 
         var json = gson.toJson(Map.of("cid", cid));
         return respond(200, contentType("application/json"), json);
@@ -185,5 +190,21 @@ public class HttpHandler {
         if (body == null)
             return error("content not found", 404);
         return respond(200, contentType("application/octet-stream"), body);
+    }
+
+    /** Respond with the file schema if it is (semi-)strutured. **/
+    public Map schema(String cid) {
+        var type = db.getType(cid);
+        var future = (Future<String>) extractMetadata.invoke(cid, type);
+        try {
+            var schema = future.get();
+            if (schema == null)
+                return error("unsupported data type");
+            return respond(200, contentType("application/json"), schema);
+        } catch (ExecutionException e) {
+            return error(null);
+        } catch (InterruptedException e) {
+            return error(null);
+        }
     }
 }

@@ -21,8 +21,9 @@
   (:require [aleph.http :refer [start-server]]
             [clojure.string :refer [starts-with?]]
             [taoensso.timbre :refer [debug]])
-  (:import (comlake.core Configuration
-                         HttpHandler)))
+  (:import (comlake.core Configuration HttpHandler)
+           (comlake.core.fs InterPlanetaryFileSystem)
+           (comlake.core.db PostgreSQL)))
 
 (defn route
   "Route HTTP endpoints."
@@ -41,12 +42,14 @@
            (starts-with? uri "/dir/")) (.ls handler (subs uri 5))
       (and (= method :get)
            (starts-with? uri "/file/")) (.get handler (subs uri 6))
+      (and (= method :get)
+           (starts-with? uri "/schema/")) (.schema handler (subs uri 8))
       :else (HttpHandler/error "unsupported" 404))))
 
 (defn make-handler
   "Construct a Ring request handler."
-  [cfg]
-  (let [handler (HttpHandler. cfg)]
+  [fs db]
+  (let [handler (HttpHandler. fs db)]
     (fn [request]
       ;; java.util.Map.of does not produce clojure map.
       (let [response (reduce (fn [m [k v]] (assoc m k v)) {}
@@ -58,5 +61,7 @@
   "Start the HTTP server."
   ([] (-main "8090"))
   ([port & args]
-   (let [cfg (Configuration.)]
-    (start-server (make-handler cfg) {:port (Integer/parseInt port)}))))
+   (let [cfg (Configuration.)
+         fs (InterPlanetaryFileSystem. (.-ipfsMultiAddr cfg))
+         db (PostgreSQL. (.-psqlUrl cfg) (.-psqlUser cfg) (.-psqlPasswd cfg))]
+    (start-server (make-handler fs db) {:port (Integer/parseInt port)}))))

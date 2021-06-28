@@ -10,6 +10,7 @@
                  [com.google.code.gson/gson "2.8.6"]
                  [com.mchange/c3p0 "0.9.5.5"]
                  [com.taoensso/timbre "5.1.2"]
+                 [luposlip/json-schema "0.3.1"]
                  [net.harawata/appdirs "1.2.1"]
                  [org.clojure/clojure "1.10.3"]
                  [org.clojure/data.json "2.2.1"]

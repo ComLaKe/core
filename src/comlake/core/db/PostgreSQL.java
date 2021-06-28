@@ -39,14 +39,22 @@ import comlake.core.db.Database;
 
 public class PostgreSQL implements Database {
     private static final String INSERT_CONTENT = (
-        "INSERT INTO content (cid, type)"
-        + " VALUES (?, ?) ON CONFLICT DO NOTHING");
+        "INSERT INTO content (cid, type, extra)"
+        + " VALUES (?, ?, '{}'::json) ON CONFLICT DO NOTHING");
     private static final String INSERT_DATASET = (
         "INSERT INTO dataset (file, description, source, topics, extra)"
         + " VALUES (?, ?, ?, ?, ?::json)");
     private static final String UPDATE_DATASET = (
         "INSERT INTO dataset (file, description, source, topics, extra, parent)"
         + " SELECT %s, %s, %s, %s, %s, id FROM dataset WHERE id = %d");
+    private static final String GET_TYPE = (
+        "SELECT type FROM content WHERE cid = '%s'");
+    private static final String GET_SCHEMA = (
+        "SELECT extra->>'schema' FROM content WHERE cid = '%s'");
+    private static final String SET_SCHEMA = (
+        "UPDATE content"
+        + " SET extra = jsonb_set(extra, '{schema}'::text[], %s::jsonb)"
+        + " WHERE cid = %s");
     private static final Gson gson = new Gson();
     private ComboPooledDataSource pool;
 
@@ -158,9 +166,43 @@ public class PostgreSQL implements Database {
                 result.add(row);
             }
         } catch (SQLException e) {
-            System.out.println(e);
             return null;
         }
         return result;
+    }
+
+    /** Return content type. **/
+    public String getType(String cid) {
+        try (var conn = pool.getConnection();
+             var statement = conn.createStatement()) {
+            var rs = statement.executeQuery(String.format(GET_TYPE, cid));
+            rs.next();
+            return rs.getString("type");
+        } catch (SQLException e) {
+            return null;
+        }
+    }
+
+    /** Return schema of given (semi-)structured content. **/
+    public String getSchema(String cid) {
+        try (var conn = pool.getConnection();
+             var statement = conn.createStatement()) {
+            var rs = statement.executeQuery(String.format(GET_SCHEMA, cid));
+            rs.next();
+            return rs.getString("?column?");
+        } catch (SQLException e) {
+            return null;
+        }
+    }
+
+    /** Update schema of given (semi-)structured content. **/
+    public void setSchema(String cid, String schema) {
+        var query = String.format(SET_SCHEMA, quote(schema), quote(cid));
+        try (var conn = pool.getConnection();
+             var statement = conn.prepareStatement(query)) {
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println(e);
+        }
     }
 }

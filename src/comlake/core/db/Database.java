@@ -39,4 +39,13 @@ public interface Database extends AutoCloseable {
     /** Filter for rows matching predicate, return null on errors. **/
     public ArrayList<Map<String, Object>> search(String predicate);
 
+    /** Return content type. **/
+    public String getType(String cid);
+
+    /** Return schema of given (semi-)structured content. **/
+    public String getSchema(String cid);
+
+    /** Update schema of given (semi-)structured content. **/
+    public void setSchema(String cid, String schema);
+
 }
