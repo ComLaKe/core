@@ -132,7 +132,7 @@
                  ;; Obviously file CID cannot be empty
                  (empty? (json-body response))))))
     (testing "malformed query"
-      (let [override {:body (json/write-str ["8=D" "foo" "bar"])}
+      (let [override {:body "{"}
             response @(http-post url (merge options override))]
         (is (and (= 400 (:status response))
                  (= "malformed query"

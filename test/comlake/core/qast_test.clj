@@ -19,19 +19,22 @@
 (ns comlake.core.qast-test
   "Query AST parser tests."
   (:require [clojure.test :refer [deftest is testing]]
-            [comlake.core.db.qast :refer [qast-to-psql]]))
+            [comlake.core.db.qast :refer [qast->psql]]))
 
 (deftest operators
   (testing "regular expression"
     (is (= "('name@domain.com' ~ '.*@(.*)')"
-           (qast-to-psql ["~" "name@domain.com" ".*@(.*)"]))))
+           (qast->psql ["~" "name@domain.com" ".*@(.*)"]))))
+  (testing "logical intersection"
+    (is (= "((topics) && ARRAY['copypasta'])"
+           (qast->psql ["&&" ["." "topics"] ["copypasta"]]))))
   (testing "quick maths"
     (is (= (str "((((2 + 2) - 1) = 3)"
                 " AND (3 < (8 / 2) < (MOD((2 * 2 * 3), 7)))"
                 " AND (3000 >= 100)"
                 " AND (NOT ((420 <= 69) OR (9 > 11) OR (8 <> 8))))")
-           (qast-to-psql ["&"
-                          ["==" ["-" ["+" 2 2] 1] 3]
-                          ["<" 3 ["/" 8 2] ["%" ["*" 2 2 3] 7]]
-                          [">=" 3000 100]
-                          ["!" ["|" ["<=" 420 69] [">" 9 11] ["!=" 8 8]]]])))))
+           (qast->psql ["&"
+                        ["==" ["-" ["+" 2 2] 1] 3]
+                        ["<" 3 ["/" 8 2] ["%" ["*" 2 2 3] 7]]
+                        [">=" 3000 100]
+                        ["!" ["|" ["<=" 420 69] [">" 9 11] ["!=" 8 8]]]])))))

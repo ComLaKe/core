@@ -16,6 +16,7 @@ The following operators are currently supported:
 |   `*`    | 1+ numbers  | number      | Multiplication                      |
 |   `/`    | 1+ numbers  | number      | Division                            |
 |   `%`    | 2 numbers   | number      | Modulo                              |
+|   `&&`   | 2 arrays    | boolean     | Logical intersection                |
 |   `&`    | 0+ booleans | value       | Logical *and*                       |
 |   `|`    | 0+ booleans | value       | Logical *or*                        |
 |   `==`   | 2+ values   | boolean     | Equality                            |

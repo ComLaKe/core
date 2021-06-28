@@ -49,7 +49,7 @@ public class HttpHandler {
 
     public HttpHandler(FileSystem filesystem, Database database) {
         require.invoke(Clojure.read("comlake.core.db.qast"));
-        parseAst = Clojure.var("comlake.core.db.qast", "json-to-psql");
+        parseAst = Clojure.var("comlake.core.db.qast", "json->psql");
         require.invoke(Clojure.read("comlake.core.worker.factory"));
 
         fs = filesystem;

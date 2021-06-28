@@ -35,27 +35,30 @@
    ">=" [#(string/join " >= " %) #(> % 1)]
    "<" [#(string/join " < " %) #(> % 1)]
    "<=" [#(string/join " <= " %) #(> % 1)]
+   "&&" [#(string/join " && " %) #(= % 2)]
    "&" [#(string/join " AND " %) any?]
    "|" [#(string/join " OR " %) any?]
    "!" [#(apply format "NOT %s" %) #(= % 1)]})
 
-(defn qast-to-psql
+(defn qast->psql
   "Parse query AST into PostgreSQL predicate.
   Return nil in case of an invalid AST."
   [ast]
-  (cond (vector? ast) (when-let [[op pred] (get ops-psql (first ast))]
+  (cond (vector? ast) (if-let [[op pred] (get ops-psql (first ast))]
                         (when (pred (dec (count ast)))
-                          (let [args (map qast-to-psql (rest ast))]
+                          (let [args (map qast->psql (rest ast))]
                             (when (every? some? args)
-                              (format "(%s)" (op args))))))
+                              (format "(%s)" (op args)))))
+                        (format "ARRAY[%s]"
+                                (string/join ", " (map qast->psql ast))))
         (string? ast) (format "'%s'" ast)
         ;; TODO: map
         :else (json/write-str ast)))
 
-(defn json-to-psql
+(defn json->psql
   "Parse JSON input stream reader into PostgreSQL predicate.
   Return nil in case of an invalid AST."
   [reader]
   (let [ast (try (json/read reader)
                  (catch Exception e nil))]
-    (when ast (qast-to-psql ast))))
+    (when ast (qast->psql ast))))
