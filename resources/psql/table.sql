@@ -10,7 +10,7 @@ CREATE TABLE comlake (id serial primary key,
 DROP TABLE IF EXISTS content CASCADE;
 CREATE TABLE content (cid text PRIMARY KEY,
                       type text,
-                      extra json);
+                      extra jsonb);
 DROP TABLE IF EXISTS dataset;
 CREATE TABLE dataset (id bigserial PRIMARY KEY,
                       file text REFERENCES content,
