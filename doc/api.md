@@ -6,7 +6,7 @@ Table of content:
 * [POST /dir](#post-dir)
 * [POST /file](#post-file)
 * [POST /cp](#post-cp)
-* [POST /add](#post-add)
+* [POST /dataset](#post-dataset)
 * [POST /update](#post-update)
 * [POST /find](#post-find)
 * [GET /dir/{cid}](#get-dir-cid-)
@@ -144,7 +144,7 @@ Content-Type: application/json
 {"cid":"QmPao7zTNvuqH2pAVUgquYXgEhqoiTBpdjU7AwgZvsta9r"}
 ```
 
-## POST /add
+## POST /dataset
 
 Add the dataset to the lake.
 
@@ -163,7 +163,7 @@ Extra fields will be ingested and used for later indexing.
 #### Example
 
 ```http
-POST /add HTTP/1.1
+POST /dataset HTTP/1.1
 Accept: application/json
 Content-Type: application/json
 {"file": "QmbwXK2Wg6npoAusr9MkSduuAViS6dxEQBNzqoixanVtj5",
@@ -199,7 +199,7 @@ Other fields with be merged with the parent dataset entry.
 #### Example
 
 ```http
-POST /add HTTP/1.1
+POST /dataset HTTP/1.1
 Accept: application/json
 Content-Type: application/json
 {"parent": "42", "language": "English"}

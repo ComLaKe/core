@@ -91,7 +91,7 @@
                   (get (json-body response) "error")))))))
 
 (deftest post-add
-  (let [url (make-url "/add")
+  (let [url (make-url "/dataset")
         full {"file" interjection-cid
               "description" "Interjection"
               "source" "https://wiki.installgentoo.com"

@@ -35,7 +35,7 @@
    ">=" [#(string/join " >= " %) #(> % 1)]
    "<" [#(string/join " < " %) #(> % 1)]
    "<=" [#(string/join " <= " %) #(> % 1)]
-   "&&" [#(string/join " && " %) #(= % 2)]
+   "&&" [#(apply format "%s && %s" %) #(= % 2)]
    "&" [#(string/join " AND " %) any?]
    "|" [#(string/join " OR " %) any?]
    "!" [#(apply format "NOT %s" %) #(= % 1)]})

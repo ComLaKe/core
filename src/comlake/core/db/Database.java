@@ -47,5 +47,4 @@ public interface Database extends AutoCloseable {
 
     /** Update schema of given (semi-)structured content. **/
     public void setSchema(String cid, String schema);
-
 }
