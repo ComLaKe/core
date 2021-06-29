@@ -125,7 +125,7 @@
   (let [url (make-url "/find")
         options {:accept :json
                  :content-type :json
-                 :body (json/write-str ["~" ["." "file"] "^$"])}]
+                 :body (json/write-str ["~" ["." ["$"] "file"] "^$"])}]
     (testing "success"
       (let [response @(http-post url options)]
         (is (and (= 200 (:status response))

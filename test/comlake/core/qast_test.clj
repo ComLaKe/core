@@ -27,7 +27,7 @@
            (qast->psql ["~" "name@domain.com" ".*@(.*)"]))))
   (testing "logical intersection"
     (is (= "((topics) && ARRAY['copypasta'])"
-           (qast->psql ["&&" ["." "topics"] ["copypasta"]]))))
+           (qast->psql ["&&" ["." ["$"] "topics"] ["copypasta"]]))))
   (testing "quick maths"
     (is (= (str "((((2 + 2) - 1) = 3)"
                 " AND (3 < (8 / 2) < (MOD((2 * 2 * 3), 7)))"

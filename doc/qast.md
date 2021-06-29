@@ -9,7 +9,8 @@ The following operators are currently supported:
 
 | Operator | Operands    | Result      | Description                         |
 | :------: | :---------  | :---------- | :---------------------------------- |
-|   `.`    | 1 string    | value       | Get field from current row          |
+|   `$`    | (none)      | value       | Get current row                     |
+|   `.`    | 2+ string   | value       | Get field from the first operand    |
 |   `~`    | 2 strings   | null/object | Regular expression matcher          |
 |   `+`    | 1+ value    | value       | Sum or strings/arrays concatenation |
 |   `-`    | 1+ numbers  | number      | Subtraction                         |

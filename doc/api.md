@@ -237,7 +237,7 @@ POST /find HTTP/1.1
 Accept: application/json
 Content-Type: application/json
 
-["<", [".", "length"], 4096]
+["<", [".", ["$"], "length"], 4096]
 ```
 
 ### Response

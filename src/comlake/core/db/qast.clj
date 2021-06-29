@@ -20,9 +20,18 @@
   (:require [clojure.data.json :as json]
             [clojure.string :as string]))
 
+(defn getter-psql
+  "Return a getter of given fields for PostgreSQL."
+  [coll]
+  (if (= "()" (first coll))
+    (getter-psql (cons (string/replace (second coll) #"^'(.*)'$" "$1")
+                       (nthrest coll 2)))
+    (string/join "->" coll)))
+
 (def ops-psql
   "Supported query operators and their predicates for number of operands."
-  {"." [#(string/replace (first %) #"^'(.*)'$" "$1") #(= % 1)]
+  {"$" [(constantly "") #(= % 0)]
+   "." [getter-psql #(> % 1)]
    "~" [#(apply format "%s ~ %s" %) #(= % 2)]
    "+" [#(string/join " + " %) #(> % 0)]
    "-" [#(string/join " - " %) #(> % 0)]
