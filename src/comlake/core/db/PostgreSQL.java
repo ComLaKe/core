@@ -40,7 +40,8 @@ import comlake.core.db.Database;
 public class PostgreSQL implements Database {
     private static final String INSERT_CONTENT = (
         "INSERT INTO content (cid, type, extra)"
-        + " VALUES (?, ?, '{}'::json) ON CONFLICT DO NOTHING");
+        + " VALUES (?, ?, '{}'::json) ON CONFLICT (cid)"
+        + " DO UPDATE SET type = EXCLUDED.type, extra = EXCLUDED.extra");
     private static final String INSERT_DATASET = (
         "INSERT INTO dataset (file, description, source, topics, extra)"
         + " VALUES (?, ?, ?, ?, ?::json)");
