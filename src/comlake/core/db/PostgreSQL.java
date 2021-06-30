@@ -47,6 +47,10 @@ public class PostgreSQL implements Database {
     private static final String UPDATE_DATASET = (
         "INSERT INTO dataset (file, description, source, topics, extra, parent)"
         + " SELECT %s, %s, %s, %s, %s, id FROM dataset WHERE id = %d");
+    private static final String SEARCH_DATASET = (
+        "SELECT dataset.extra || content.extra as extra,"
+        + " id, cid, type, description, source, topics, parent"
+        + " FROM dataset JOIN content ON file = cid WHERE %s");
     private static final String GET_TYPE = (
         "SELECT type FROM content WHERE cid = '%s'");
     private static final String GET_SCHEMA = (
@@ -151,14 +155,15 @@ public class PostgreSQL implements Database {
     /** Filter for rows matching predicate, return null on errors. **/
     public ArrayList<Map<String, Object>> search(String predicate) {
         var result = new ArrayList<Map<String, Object>>();
-        var query = "SELECT * FROM dataset WHERE " + predicate;
+        var query = String.format(SEARCH_DATASET, predicate);
         try (var conn = pool.getConnection();
              var statement = conn.createStatement()) {
             var rs = statement.executeQuery(query);
             while (rs.next()) {
                 var row = gson.fromJson(rs.getString("extra"), Map.class);
                 row.put("id", String.valueOf(rs.getLong("id")));
-                row.put("file", rs.getString("file"));
+                row.put("cid", rs.getString("cid"));
+                row.put("type", rs.getString("type"));
                 row.put("description", rs.getString("description"));
                 row.put("source", rs.getString("source"));
                 row.put("topics", ((Array) rs.getObject("topics")).getArray());
