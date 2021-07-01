@@ -1,4 +1,4 @@
-(defproject comlake.core "0.3.1"
+(defproject comlake.core "0.4.0-SNAPSHOT"
   :description "USTH data lake core"
   :url "https://github.com/ComLake/comlake.core"
   :license {:name "GNU Affero General Public License 3.0"
@@ -13,13 +13,13 @@
                  [luposlip/json-schema "0.3.1"]
                  [net.harawata/appdirs "1.2.1"]
                  [org.clojure/clojure "1.10.3"]
+                 [org.clojure/data.csv "1.0.0"]
                  [org.clojure/data.json "2.2.1"]
                  [org.postgresql/postgresql "42.2.20"]]
   :main ^:skip-aot comlake.core.main
   :java-source-paths ["src"]
   :target-path "target/%s"
-  :profiles {:repl {:plugins [[cider/cider-nrepl "0.26.0"]
-                              [lein-virgil "0.1.9"]]}
+  :profiles {:repl {:plugins [[cider/cider-nrepl "0.26.0"]]}
              :uberjar {:aot :all}}
   :plugins [[lein-cloverage "1.2.2"]
             [lein-codox "0.10.7"]]

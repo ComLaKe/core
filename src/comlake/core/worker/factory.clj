@@ -17,10 +17,15 @@
 
 (ns comlake.core.worker.factory
   "Metadata extractor factory."
-  (:require [clojure.data.json :as json]
+  (:require [clojure.data.csv :refer [read-csv]]
+            [clojure.data.json :as json]
             [clojure.java.io :refer [reader]]
             [clojure.string :refer [blank?]]
             [json-schema.infer :as json-schema]))
+
+(def re-number
+  "JSON number regular expression."
+  #"-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?")
 
 (defn infer-json
   "Infer JSON schema of given content."
@@ -30,7 +35,22 @@
 
 (defn infer-csv
   "Infer schema of given CSV content."
-  [cid fs]) ; TODO
+  [cid fs]
+  (let [file (->> cid (.fetch fs) reader read-csv)
+        names (first file)
+        types (map #(-> {"type" %})
+                   (reduce (partial map #(cond ; only consider number and string
+                                           (or (= %1 "string") (blank? %2)) %1
+                                           (re-matches re-number %2) "number"
+                                           :else "string"))
+                           (repeat (count names) "number")
+                           (rest file)))]
+    (json/write-str
+      {"$schema" "http://json-schema.org/draft-07/schema#"
+       "title" cid
+       "type" "array"
+       "items" {"type" "object"
+                "properties" (zipmap names types)}})))
 
 (defn schema
   "Return future to schema of given content."
