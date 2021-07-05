@@ -18,13 +18,19 @@
 (ns comlake.core.worker.filter
   "Data extractors."
   (:require [clojure.data.csv :refer [read-csv]]
-            [clojure.data.json :as json]
-            [clojure.java.io :refer [reader]]
-            [clojure.string :refer [blank?]]
-            [json-schema.infer :as json-schema]))
+            [clojure.data.json :as json]))
+
+(defn csv->json
+  "Convert tabular data to key-value."
+  [csv]
+  (let [names (first csv)]
+    (map #(zipmap names %) (rest csv))))
 
 (defn extract-data
+  "Extract (semi-)structured data matching given predicate."
   [predicate mime reader]
   (when-let [result (case mime
-                      "application/json" (filter predicate (json/read reader)))]
+                      "application/json" (filter predicate (json/read reader))
+                      "text/csv" (filter predicate
+                                         (csv->json (read-csv reader))))]
     (json/write-str result)))
