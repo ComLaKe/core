@@ -43,18 +43,24 @@ public class HttpHandler {
     static final IFn require = Clojure.var("clojure.core", "require");
 
     private IFn parseAst;
+    private IFn parseAstFn;
+    private IFn extractData;
     private IFn extractMetadata;
     private FileSystem fs;
     private Database db;
 
     public HttpHandler(FileSystem filesystem, Database database) {
-        require.invoke(Clojure.read("comlake.core.db.qast"));
-        parseAst = Clojure.var("comlake.core.db.qast", "json->psql");
-        require.invoke(Clojure.read("comlake.core.worker.factory"));
-
         fs = filesystem;
         db = database;
 
+        require.invoke(Clojure.read("comlake.core.db.qast"));
+        parseAst = Clojure.var("comlake.core.db.qast", "json->psql");
+        parseAstFn = Clojure.var("comlake.core.db.qast", "json->fn");
+
+        require.invoke(Clojure.read("comlake.core.worker.filter"));
+        extractData = Clojure.var("comlake.core.worker.filter", "extract-data");
+
+        require.invoke(Clojure.read("comlake.core.worker.factory"));
         var extractor = Clojure.var("comlake.core.worker.factory",
                                     "metadata-extractor");
         extractMetadata = (IFn) extractor.invoke(fs, db);
@@ -206,5 +212,18 @@ public class HttpHandler {
         } catch (InterruptedException e) {
             return error(null);
         }
+    }
+
+    /** Respond with extracted content from (semi-)structured data. **/
+    public Map extract(String cid, InputStream ast) {
+        var predicate = (IFn) parseAstFn.invoke(new InputStreamReader(ast));
+        if (predicate == null)
+            return error("malformed query");
+
+        var body = extractData.invoke(predicate, db.getType(cid),
+                                      new InputStreamReader(fs.fetch(cid)));
+        if (body == null)
+            return error("failed query");
+        return respond(200, contentType("application/json"), body);
     }
 }

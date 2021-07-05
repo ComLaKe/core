@@ -44,6 +44,9 @@
            (starts-with? uri "/file/")) (.get handler (subs uri 6))
       (and (= method :get)
            (starts-with? uri "/schema/")) (.schema handler (subs uri 8))
+      (and (= method :post)
+           (starts-with? uri "/extract/")) (.extract handler (subs uri 9)
+                                                             (:body request))
       :else (HttpHandler/error "unsupported" 404))))
 
 (defn make-handler

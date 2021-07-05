@@ -71,3 +71,53 @@
   (let [ast (try (json/read reader)
                  (catch Exception e nil))]
     (when ast (qast->psql ast))))
+
+(defn mkfn
+  [op]
+  "Construct a function returning a lambda lazily applying given operator."
+  (fn [args]
+    (fn [row]
+      (apply op (map #(% row) args)))))
+
+(def ops-fn
+  "Supported query operators and their predicates for number of operands."
+  {"$" [(constantly identity) #(= % 0)]
+   "." [(fn [args]
+          (fn [row] (reduce #(get %1 %2) (map #(% row) args)))) #(> % 1)]
+   "~" [#(apply format "%s ~ %s" %) #(= % 2)] ; TODO
+   "+" [(mkfn +) #(> % 0)]
+   "-" [(mkfn -) #(> % 0)]
+   "*" [(mkfn *) #(> % 0)]
+   "/" [(mkfn /) #(> % 0)]
+   "%" [(mkfn rem) #(= % 2)]
+   "==" [(mkfn =) #(> % 1)]
+   "!=" [(mkfn not=) #(> % 1)]
+   ">" [(mkfn >) #(> % 1)]
+   ">=" [(mkfn >=) #(> % 1)]
+   "<" [(mkfn <) #(> % 1)]
+   "<=" [(mkfn <=) #(> % 1)]
+   "&&" [#(apply format "%s && %s" %) #(= % 2)] ; TODO
+   "&" [#(string/join " AND " %) any?] ; TODO
+   "|" [#(string/join " OR " %) any?] ; TODO
+   "!" [(mkfn not) #(= % 1)]})
+
+(defn qast->fn
+  "Parse query AST into programmatic predicate.
+  Return nil in case of an invalid AST."
+  [ast]
+  (if (vector? ast)
+    (if-let [[op pred] (get ops-fn (first ast))]
+      (when (pred (dec (count ast)))
+        (let [args (map qast->fn (rest ast))]
+          (when (every? some? args)
+            (op args))))
+      (constantly ast))
+    (constantly ast)))
+
+(defn json->fn
+  "Parse JSON input stream reader into programmatic predicate.
+  Return nil in case of an invalid AST."
+  [reader]
+  (let [ast (try (json/read reader)
+                 (catch Exception e nil))]
+    (when ast (qast->fn ast))))

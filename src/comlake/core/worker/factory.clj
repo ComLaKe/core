@@ -1,4 +1,4 @@
-;;;; Metadata extractor factory
+;;;; Metadata extractors
 ;;;; Copyright (C) 2021  Nguyễn Gia Phong
 ;;;;
 ;;;; This file is part of comlake.core.
@@ -16,7 +16,7 @@
 ;;;; along with comlake.core.  If not, see <https://www.gnu.org/licenses/>.
 
 (ns comlake.core.worker.factory
-  "Metadata extractor factory."
+  "Metadata extractor."
   (:require [clojure.data.csv :refer [read-csv]]
             [clojure.data.json :as json]
             [clojure.java.io :refer [reader]]
