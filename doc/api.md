@@ -11,6 +11,8 @@ Table of content:
 * [POST /find](#post-find)
 * [GET /dir/{cid}](#get-dir-cid-)
 * [GET /file/{cid}](#get-file-cid-)
+* [GET /schema/{cid}](#get-schema-cid-)
+* [POST /extract/{cid}](#post-extract-cid-)
 
 ## Status Codes
 
@@ -121,7 +123,7 @@ Copy `QmbwXK2Wg6npoAusr9MkSduuAViS6dxEQBNzqoixanVtj5`
 to `QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG/interjection`:
 
 ```http
-POST /find HTTP/1.1
+POST /cp HTTP/1.1
 Accept: application/json
 Content-Type: application/json
 
@@ -331,4 +333,93 @@ it can only function in the context of a complete operating system.  Linux is
 normally used in combination with the GNU operating system: the whole system
 is basically GNU with Linux added, or GNU/Linux.  All the so-called "Linux"
 distributions are really distributions of GNU/Linux.
+```
+
+## GET /schema/{cid}
+
+JSON schema of (semi-)structured content (JSON or CSV).
+
+### Request
+
+In the URI, `cid` specifies the content identifier of the wanted JSON or CSV.
+
+#### Example
+
+Get schema of content of ID `QmPVydGNAbc7t4CEf3qxETRNjYkXotABEeN2WBXkkGNc5H`:
+
+```http
+GET /schema/QmPVydGNAbc7t4CEf3qxETRNjYkXotABEeN2WBXkkGNc5H
+```
+
+### Response
+
+The server should respond with a JSON schema.  In case of an error,
+the response would be an JSON object with field `error`.
+
+#### Example
+
+```http
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{
+  "$schema": "http://json-schema.org/draft-07/schema#"
+  "title": "QmPVydGNAbc7t4CEf3qxETRNjYkXotABEeN2WBXkkGNc5H",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties": {
+      "country_code": { "type": "string" },
+      "country_name": { "type": "string" },
+      "indicator_code": { "type": "string" },
+      "indicator_name": { "type": "string" }
+      "year_1969": { "type": "number" },
+      ...
+    }
+  },
+}
+```
+
+## POST /extract/{cid}
+
+Extract specific rows from (semi-)structured data.
+
+### Request
+
+In the URI, `cid` specifies the content identifier of the wanted JSON or CSV.
+The body must be a valid [query AST](qast.md) predicate, represented in JSON.
+
+#### Example
+
+Extract the rows with `country_name` of `Vietnam`
+from `QmPVydGNAbc7t4CEf3qxETRNjYkXotABEeN2WBXkkGNc5H`:
+
+```http
+POST /extract/QmPVydGNAbc7t4CEf3qxETRNjYkXotABEeN2WBXkkGNc5H
+Content-Type: application/json
+
+["==", [".", ["$"], "country_name"], "Vietnam"]
+```
+
+### Response
+
+The server's response must be in JSON.  In case of an error,
+it shall be explained in the field `error`.
+
+#### Example
+
+```http
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+[
+  {
+    "country_code": "VNM",
+    "country_name": "Vietnam",
+    "indicator_code": "SP.POP.TOTL",
+    "indicator_name": "Population, total",
+    "year_1969": "42307146",
+    ...
+  }
+]
 ```

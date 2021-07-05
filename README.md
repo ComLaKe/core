@@ -8,6 +8,17 @@ USTH data lake core
 * [PostgreSQL](https://www.postgresql.org)
 * [IPFS](https://ipfs.io)
 
+## Usage
+
+While `lein run` in the project's root directory should suffice,
+it is recommended to compile ahead of time for a better performance
+(and independence from Leiningen):
+
+    git clone https://github.com/ComLake/comlake.core
+    cd comlake.core
+    lein uberjar
+    java -jar target/uberjar/comlake.core-*-standalone.jar
+
 ## Hacking
 
     $ lein repl
