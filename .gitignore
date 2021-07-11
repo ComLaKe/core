@@ -14,6 +14,7 @@ pom.xml.asc
 *.acr
 *.alg
 *.aux
+*.eps
 *.fdb_latexmk
 *.fls
 *.glg
@@ -23,5 +24,6 @@ pom.xml.asc
 *.ist
 *.log
 *.out
+*-eps-converted-to.pdf
 *.synctex.gz
 *.toc

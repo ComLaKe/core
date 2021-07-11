@@ -1,0 +1,22 @@
+@startuml
+left to right direction
+entity File {
+    * cid : text
+    --
+    * type : text
+    * extra : json
+}
+
+entity Entry {
+    * id : bigserial <<generated>>
+    --
+    * file : bigint <<foreign key>>
+    * description : text
+    * source : text
+    * topics : text[]
+    * extra : json
+    parent : bigint <<foreign key>>
+}
+
+Entry }|..|| File
+@enduml

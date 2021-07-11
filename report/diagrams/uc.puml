@@ -1,0 +1,33 @@
+@startuml
+left to right direction
+
+:Admin:
+:Public API: as I
+:Storage: as DFS
+:Database: as DB
+
+(Upload content) as upload
+I --> upload
+upload -- DFS
+upload -- DB
+
+(Add dataset) as add
+I --> add
+add -- DB
+
+(Find datasets) as filter
+I --> filter
+filter -- DB
+
+(Download content) as download
+I --> download
+download -- DFS
+
+(Extract content) as extract
+I --> extract
+extract -- DFS
+extract -- DB
+
+(Gather logs) as feed
+Admin --> feed
+@enduml

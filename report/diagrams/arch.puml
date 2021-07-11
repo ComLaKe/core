@@ -1,0 +1,29 @@
+@startuml
+node Core {
+    component Database as meta
+    component "File System" as files
+    component "Core API" as http
+    component "Metadata Enricher" as enrich
+}
+
+collections IPFS <<DFS>>
+files <--> IPFS
+
+database PostgreSQL <<DBMS>>
+meta <--> PostgreSQL
+
+http <--> files
+http <--> meta
+enrich <-- files
+enrich --> meta
+
+node "Query Engine" as query
+query <--> http
+
+node "Public API" as api
+api <--> query
+api <--> http
+
+cloud "Crawler, Dashboard, User" as client <<Clients>>
+client <--> api
+@enduml
