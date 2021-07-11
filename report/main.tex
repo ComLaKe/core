@@ -1,0 +1,186 @@
+\documentclass[a4paper,12pt]{book}
+\usepackage[vietnamese,english]{babel}
+\usepackage{lmodern}
+\usepackage{booktabs}
+\usepackage{titling}
+\usepackage[Bjornstrup]{fncychap}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage[titletoc]{appendix}
+\usepackage[numbib]{tocbibind}
+\usepackage[acronym,numberedsection=autolabel,toc]{glossaries}
+
+\author{Nguyễn Gia Phong}
+\newcommand{\doi}[1]{doi:\href{https://doi.org/#1}{#1}}
+
+\makeglossaries
+\newacronym{usth}{USTH}{University of Science and Technology of Hanoi}
+\newacronym{api}{API}{application programming interface}
+
+\begin{document}
+\frontmatter
+
+% Template: https://www.latextemplates.com/template/academic-title-page
+\pagestyle{empty}
+\begin{center}\large
+  \textsc{\Large\selectlanguage{vietnamese}\begin{tabular}{c}
+    University of Science\\
+    and Technology of Hanoi
+  \end{tabular}}
+  \vfill\vfill
+  \textsc{Bachelor Thesis}
+  \vfill
+  \textbf{\LARGE\begin{tabular}{c}
+    \toprule
+    % TODO: Convolute the title
+    Development of Data Lake Core\\
+    with Append-Only Storages\\
+    and Query Polymorphism\\
+    \bottomrule
+  \end{tabular}}
+  \vfill
+  \begin{minipage}[t]{0.4\textwidth}
+    \begin{flushleft}
+      \textit{Author}\\
+      \selectlanguage{vietnamese}
+      \theauthor
+    \end{flushleft}
+  \end{minipage}
+  \hspace{0.12\textwidth}
+  \begin{minipage}[t]{0.4\textwidth}
+    \begin{flushright}
+      \textit{Supervisor}\\
+      \selectlanguage{vietnamese}
+      Trần Giang Sơn, PhD
+    \end{flushright}
+  \end{minipage}
+  \vfill\vfill\vfill
+  \today
+  \vfill
+  \includegraphics[width=0.3\textwidth]{usth-logo.pdf}
+  \vfill
+\end{center}
+\cleardoublepage
+
+\setcounter{page}{1}
+\tableofcontents
+
+\chapter{Declaration}
+I declare that I have composed this thesis in its entirety, as the result
+of my own work, unless explicitly indicated otherwise via referencing.
+The presented work has not been submitted for any previous application
+for a degree or professional qualification.
+
+{\selectlanguage{vietnamese}\let\clearpage\relax\chapter*{Lời Cam Đoan}
+\vspace{-4em}Tôi xin cam đoan rằng tôi đã soạn toàn bộ luận án này, hoàn toàn
+từ kết quả công việc của chính bản thân tôi, trừ khi được chỉ rõ qua trích dẫn.
+Công việc được trình bày chưa bao giờ được nộp cho việc cấp học vị
+hay chứng chỉ trình độ chuyên môn nào trước đây.}
+
+%\chapter{Preface}
+%\chapter{Abstract}
+
+\mainmatter
+\chapter{Introduction}
+\section{Motivation}
+Many researchers at \gls{usth} operate with data on a regular basis
+and often a dataset is studied by multiple researchers from different
+departments and points in time.  Currently the data are organized manually,
+even on the laboratories' storages, which is prone to duplication
+and makes data discovery difficult.
+
+A data lake shared among the university's researchers, professors and students
+will not only save resources but also improve productivity and promote
+interdisciplinary collaborations.  With \gls{usth}'s goal of growing to be
+an excellent research university in {\selectlanguage{vietnamese}Việt Nam}
+and in the region~\cite{usth}, building such data lake can be an essential task.
+
+\section{Background}
+A \emph{data lake} is a massive repository of multiple types of data
+in their raw format at scale for a low cost~\cite{lake}.
+The data's schema (structure) is defined on read to minimize data modeling
+and integration costs~\cite{lake}.
+
+For the ease and efficiency of scaling, a microservice architecture
+could be a good choice.  By arranging the data lake as a collection
+of loosely-coupled services, it becomes possible to scale individual services
+individually~\cite{micro}.  In this architecture, the \emph{core} microservice
+is defined as the innermost component, which communicates directly
+with the storages.  The core shall provide an \gls{api} for other components
+to upload, query and extract data.
+
+\emph{Append-only storages} only allow new data to be appended, whilst ensure
+the immutability of existing data.  As immutable data are thread-safe,
+they reduce the complexity of the concurrency model, making it easier
+to comprehend and reason about~\cite{pure}.  This is particularly useful
+in a large distributed system with multiple moving parts.
+
+In such storages, operations boil down to only two kinds: appending and reading.
+For the latter, sometimes the data are not wanted in their entirety,
+but filtered and accumulated.  While data of different types usually requires
+different tools and libraries to query upon, the core \gls{api} should be
+providing one single query language for all data types, plus their metadata.
+In this report, such usage is referred to as \emph{query polymorphism}.
+
+\section{Objectives}
+I worked on this project as an intern for three months with other students
+in \gls{usth} ICTLab\footnote{\url{https://ictlab.usth.edu.vn}} to build
+a data lake to better manage the university's data.  My work focused on
+the lake's core microservice, which abstracts underlying persistent layers
+and perform relevant metadata transformation and discovery.  It should provide
+an internal interface to other components for data ingestion, (primitive)
+query and extraction, as well as carrying out tasks for enhancing
+the discoverability and usability of the aforementioned datasets.
+
+\section{Expected Outcomes}
+The intended deliverables of the three-month internship are listed as follows:
+\begin{itemize}
+  \item Requirement analysis of the data lake core
+  \item Data lake core's architecture and design
+  \item Core \gls{api} design and specification
+  \item Implementation and integration with other components
+\end{itemize}
+
+\chapter{Methodology}
+\section{Requirement Analysis}
+
+\section{Architecture}
+
+\section{Design}
+\subsection{Technology Choices}
+\subsection{Interface}
+\subsection{Database Schema}
+\subsection{Query Abstract Syntax Tree}
+
+\section{Implementation}
+
+\section{Quality Assurance}
+
+\chapter{Results and Discussion}
+\section{Results}
+\section{Discussion}
+
+\chapter{Conclusion}
+
+\begin{appendices}
+\printglossary[type=\acronymtype]
+
+\begin{thebibliography}{69}
+  \bibitem{usth} \emph{Mission and Vision}.  \acrlong{usth}.
+    \url{https://usth.edu.vn/en/abouts/Mission-et-Vision.html}.
+  \bibitem{lake} Huang Fang.
+    ``Managing Data Lakes in Big Data Era: What's a data lake
+    and why has it became popular in data management ecosystem''.
+    \emph{2015 IEEE International Conference on Cyber Technology
+    in Automation, Control, and Intelligent Systems}, pp.~820--824.
+    IEEE, 2015.  \doi{10.1109/CYBER.2015.7288049}
+  \bibitem{micro} Chris Richardson.
+    ``1.4.1 Scale cube and microservices''.  \emph{Microservice Patterns}.
+    Manning Publications, 2018.  ISBN 9781617294549.
+  \bibitem{pure} Brian Göetz, Tim Peierls, Joshua Bloch,
+    Joseph Bowbeer and David Holmes.
+    ``3.4. Immutability''.  \emph{Java Concurrency in Practice}.
+    Addison Wesley Professional, 2006.  ISBN 9780321349606.
+\end{thebibliography}
+\end{appendices}
+\end{document}
