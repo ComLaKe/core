@@ -4,21 +4,21 @@
 \usepackage{booktabs}
 \usepackage{graphicx}
 \usepackage{titling}
+\usepackage{ccicons}
 \usepackage[Bjornstrup]{fncychap}
 \usepackage{hyperref}
 \usepackage[titletoc]{appendix}
 \usepackage[numbib]{tocbibind}
 \usepackage[acronym,numberedsection=autolabel,section,toc]{glossaries}
 
-\author{Nguyễn Gia Phong}
-\title{Development of Data Lake Core
-with Append-Only Storages and Query Polymorphism}
-\newcommand{\doi}[1]{doi:\href{https://doi.org/#1}{#1}}
+\author{\selectlanguage{vietnamese}Nguyễn Gia Phong}
+\title{Development of Data Lake Core}
+\newcommand{\doi}[1]{\href{https://doi.org/#1}{doi:#1}}
 
 \makeglossaries
 \newglossaryentry{content}{name=content,description={a file or a directory}}
 \newglossaryentry{predicate}{name=predicate,description={an expression
-which is evaluated to either true or false}}
+evaluating to either true or false}}
 
 \newacronym{usth}{USTH}{University of Science and Technology of Hanoi}
 \newacronym{api}{API}{application programming interface}
@@ -43,17 +43,13 @@ which is evaluated to either true or false}}
   \vfill
   \textbf{\LARGE\begin{tabular}{c}
     \toprule
-    % TODO: Convolute the title
-    Development of Data Lake Core\\
-    with Append-Only Storages\\
-    and Query Polymorphism\\
+    \thetitle\\
     \bottomrule
   \end{tabular}}
   \vfill
   \begin{minipage}[t]{0.4\textwidth}
     \begin{flushleft}
       \textit{Author}\\
-      \selectlanguage{vietnamese}
       \theauthor
     \end{flushleft}
   \end{minipage}
@@ -71,7 +67,26 @@ which is evaluated to either true or false}}
   \includegraphics[width=0.3\textwidth]{usth-logo.pdf}
   \vfill
 \end{center}
-\cleardoublepage
+\clearpage
+
+\begin{center}
+  \copyright{} 2021 \theauthor
+
+  \vspace{1.5em}
+  \thetitle
+
+  \vspace{1.5em}
+  \ccbysa
+
+  \vspace{0.5em}
+  This work is licensed under
+  a \href{https://creativecommons.org/licenses/by-sa/4.0}{Creative Commons\\
+  Attribution-ShareAlike 4.0 International License}.
+
+  \vspace{1.5em}
+  \doi{10.5281/zenodo.5091222}
+\end{center}
+\clearpage
 
 \setcounter{page}{1}
 \pagestyle{plain}
@@ -82,12 +97,6 @@ I declare that I have composed this thesis in its entirety, as the result
 of my own work, unless explicitly indicated otherwise via referencing.
 The presented work has not been submitted for any previous application
 for a degree or professional qualification.
-
-{\selectlanguage{vietnamese}\let\clearpage\relax\chapter*{Lời Cam Đoan}
-\vspace{-4em}Tôi xin cam đoan rằng tôi đã soạn toàn bộ luận án này, hoàn toàn
-từ kết quả công việc của chính bản thân tôi, trừ khi được chỉ rõ qua trích dẫn.
-Công việc được trình bày chưa bao giờ được nộp cho việc cấp học vị
-hay chứng chỉ trình độ chuyên môn nào trước đây.}
 
 %\chapter{Preface}
 %\chapter{Abstract}
@@ -139,7 +148,7 @@ For the latter, sometimes the data are not wanted in their entirety,
 but filtered and accumulated.  While data of different types usually requires
 different tools and libraries to query upon, the core \gls{api} should be
 providing one single query language for all data types, plus their metadata.
-In this report, such usage is referred to as \emph{query polymorphism}.
+In this thesis, such usage is referred to as \emph{query polymorphism}.
 
 \section{Objectives}
 The work presented here was done as part of a three-month internship
@@ -244,12 +253,12 @@ in the core microservice for debugging purposes:
 
 \subsection{Supplementary Specification}
 
-\section{Architecture}
+\section{Design}
+\subsection{Architecture}
 \begin{figure}
   \includegraphics[width=\textwidth]{diagrams/arch.eps}
 \end{figure}
 
-\section{Design}
 \subsection{Technology Choices}
 
 \subsection{Interface}
@@ -285,6 +294,13 @@ in the core microservice for debugging purposes:
 
 \begin{appendices}
 \chapter{Acknowledgment}
+This work would not have been possible without open access,
+Sci-Hub and Library Genesis.  In addition, Wikipedia was a great index
+and summary for books and articles of certain topics.
+
+Moreover, I would like to thank my colleagues and supervisors
+for their feedbacks, collaborations and encouragements.  My family and friends
+(both online and in-real-life) were also incredibly supportive.
 
 \begin{thebibliography}{69}
   \bibitem{usth} \emph{Mission and Vision}.  \acrlong{usth}.
