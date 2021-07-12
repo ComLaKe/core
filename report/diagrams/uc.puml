@@ -2,29 +2,29 @@
 left to right direction
 
 :Admin:
-:Public API: as I
+:Other service: as Other
 :Storage: as DFS
 :Database: as DB
 
 (Upload content) as upload
-I --> upload
+Other --> upload
 upload -- DFS
 upload -- DB
 
 (Add dataset) as add
-I --> add
+Other --> add
 add -- DB
 
 (Find datasets) as filter
-I --> filter
+Other --> filter
 filter -- DB
 
 (Download content) as download
-I --> download
+Other --> download
 download -- DFS
 
 (Extract content) as extract
-I --> extract
+Other --> extract
 extract -- DFS
 extract -- DB
 
