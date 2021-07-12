@@ -57,11 +57,11 @@ public class HttpHandler {
         parseAst = Clojure.var("comlake.core.db.qast", "json->psql");
         parseAstFn = Clojure.var("comlake.core.db.qast", "json->fn");
 
-        require.invoke(Clojure.read("comlake.core.worker.filter"));
-        extractData = Clojure.var("comlake.core.worker.filter", "extract-data");
+        require.invoke(Clojure.read("comlake.core.extract.data"));
+        extractData = Clojure.var("comlake.core.extract.data", "extract-data");
 
-        require.invoke(Clojure.read("comlake.core.worker.factory"));
-        var extractor = Clojure.var("comlake.core.worker.factory",
+        require.invoke(Clojure.read("comlake.core.extract.metadata"));
+        var extractor = Clojure.var("comlake.core.extract.metadata",
                                     "metadata-extractor");
         extractMetadata = (IFn) extractor.invoke(fs, db);
     }

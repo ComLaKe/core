@@ -1,4 +1,6 @@
 @startuml
+!theme plain
+
 node Core {
     component "DB Client" as meta
     component "FS Client" as files
@@ -14,9 +16,9 @@ meta <--> DBMS
 
 http <--> files
 http <--> meta
-http <--> extract
-extract <-left- files
-extract <-right-> meta
+http <-right- extract
+extract <-down- files
+extract <-down-> meta
 
 node "Query Engine" as query
 query <--> http
@@ -25,6 +27,6 @@ node "Public API" as api
 api <-right-> query
 api <--> http
 
-cloud "Crawler, Dashboard, User" as client <<Clients>>
+cloud "Crawler, Dashboard, etc." as client <<Clients>>
 client <--> api
 @enduml

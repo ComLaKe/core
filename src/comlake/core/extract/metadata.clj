@@ -15,7 +15,7 @@
 ;;;; You should have received a copy of the GNU Affero General Public License
 ;;;; along with comlake.core.  If not, see <https://www.gnu.org/licenses/>.
 
-(ns comlake.core.worker.factory
+(ns comlake.core.extract.metadata
   "Metadata extractor."
   (:require [clojure.data.csv :refer [read-csv]]
             [clojure.data.json :as json]

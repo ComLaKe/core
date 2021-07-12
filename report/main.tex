@@ -9,11 +9,12 @@
 \usepackage{hyperref}
 \usepackage[titletoc]{appendix}
 \usepackage[numbib]{tocbibind}
-\usepackage[acronym,numberedsection=autolabel,section,toc]{glossaries}
+\usepackage[acronym,section,toc]{glossaries}
 
 \author{\selectlanguage{vietnamese}Nguyễn Gia Phong}
 \title{Development of Data Lake Core}
 \newcommand{\doi}[1]{\href{https://doi.org/#1}{doi:#1}}
+\renewcommand{\thefootnote}{\fnsymbol{footnote}}
 
 \makeglossaries
 \newglossaryentry{content}{name=content,description={a file or a directory}}
@@ -23,9 +24,13 @@ evaluating to either true or false}}
 \newacronym{usth}{USTH}{University of Science and Technology of Hanoi}
 \newacronym{api}{API}{application programming interface}
 \newacronym{id}{ID}{identifier}
-\newacronym{cid}{CID}{\gls{content} \gls{id}}
+\newacronym{cid}{CID}{\gls{content} identifier}
+\newacronym{os}{OS}{operating system}
+\newacronym{gnu}{GNU}{\acrshort{gnu}'s not Unix}
 \newacronym{db}{DB}{database}
+\newacronym{dbms}{DBMS}{database management system}
 \newacronym{fs}{FS}{file system}
+\newacronym{dfs}{DFS}{distributed file system}
 \newacronym{io}{I/O}{input/output}
 
 \begin{document}
@@ -175,6 +180,11 @@ The intended deliverables of the three-month internship are listed as follows:
 \end{itemize}
 
 \chapter{Methodology}
+Development followed the evolutionary prototyping model: a robust prototype
+is built by improving and adding newly understood features~\cite{proto}.
+This often took 7--10 days, with requirements, design, implementation
+and test suite all being refined.
+
 \section{Requirement Analysis}
 In this section, from given context and objectives, we analyzed
 the expected system for a set of features and derived a list of use cases.
@@ -190,17 +200,16 @@ of the content, e.g.~extracting rows matching a certain \gls{predicate}
 from (semi-)structured data.  Together with logging, the core's use cases
 are summarized in figure \ref{uc}.
 
-\begin{figure}
-  \includegraphics[width=\textwidth]{diagrams/uc.eps}
-  \caption{Use-case diagram}
+\begin{figure}\centering
+  \includegraphics[scale=0.64]{diagrams/uc.eps}
+  \caption{Use-case diagram of the core microservice}
   \label{uc}
 \end{figure}
 
-\subsubsection{Upload content}
-This use case allows other microservices of the data lake to upload
-a \gls{content}.  Its flow of events is depicted as follows,
-where error handling is omitted for brevity, since all errors, if occur,
-replace the normal response.
+\paragraph{Upload content}  This use case allows other microservices
+of the data lake to upload a \gls{content}.  Its flow of events is depicted
+as follows, where error handling is omitted for brevity, since all errors,
+if occur, replace the normal response.
 \begin{enumerate}
   \item A \gls{content} is sent to the core microservice.
   \item Core adds the content to the underlying storage
@@ -208,17 +217,15 @@ replace the normal response.
   \item Core responds with the \gls{cid} of the added \gls{content}.
 \end{enumerate}
 
-\subsubsection{Add dataset}
-This use case allows other microservices to add a dataset:
+\paragraph{Add dataset}  This use case let other services add a dataset:
 \begin{enumerate}
   \item A dataset is sent to the core microservice.
   \item Core adds the dataset to the underlying \gls{db}.
   \item Core responds with the \gls{id} of the added dataset.
 \end{enumerate}
 
-\subsubsection{Find datasets}
-This use case allows other services to find the datasets
-whose metadata satisfy a given \gls{predicate}:
+\paragraph{Find datasets}  This use case allows other services to find
+the datasets whose metadata satisfy a given \gls{predicate}:
 \begin{enumerate}
   \item A \gls{predicate} is sent to the core microservice.
   \item Core runs a query in the underlying \gls{db} to find matching datasets.
@@ -226,46 +233,90 @@ whose metadata satisfy a given \gls{predicate}:
     each of which satisfying the given \gls{predicate}.
 \end{enumerate}
 
-\subsubsection{Download content}
-This use case allows other services to download a \gls{content}:
+\paragraph{Download content}  In use case, other services fetch a \gls{content}
+from the data lake core.
 \begin{enumerate}
   \item A \gls{cid} is sent to the core microservice.
   \item Core passes the \gls{cid} to the underlying storage.
   \item Core responds with the respective \gls{content}.
 \end{enumerate}
 
-\subsubsection{Extract content}
-This use case allows other services to extract a content's parts
-satisfying a given \gls{predicate}:
+\paragraph{Extract content}  This use case allows other services
+to extract a content's parts satisfying a given \gls{predicate}:
 \begin{enumerate}
   \item A CID and a \gls{predicate} is sent to the core microservice.
   \item Core iterates the content for matching elements.
   \item Core responds with the extracted elements.
 \end{enumerate}
 
-\subsubsection{Gather logs}
-This use case allows system admins to study events occurring
-in the core microservice for debugging purposes:
+\paragraph{Gather logs}  This use case let system admins study
+events occurring in the core microservice for debugging purposes:
 \begin{enumerate}
   \item A system admin requests logs from core.
   \item The admin receives the list of past events.
 \end{enumerate}
 
 \subsection{Supplementary Specification}
+Besides the functionalities specified in the previous section,
+the following non-functional requirements were pinned down.
+
+\paragraph{Performance}  Each instance of the data lake core should be able
+to respond up to 1000 simultaneous requests, which is approximated
+from the number of \gls{usth} researchers and students, every second.
+
+\paragraph{Supportability}  The data lake core and its dependencies must
+be able to run on common \gls{os}, including, but not limited to,
+\acrshort{gnu}/Linux, Windows and macOS.  While the microservice is likely
+to be deployed on \acrshort{gnu}/Linux, it is uncertain if it will be
+the future maintainers' \gls{os} of choice for development.  Furthermore,
+languages used for implementation and depended systems should be
+either familiar or easy to learn.
+
+\paragraph{Licensing}  The resulting software must be released under
+a copyleft license, in order to persist digital freedom in scientific research
+and education.
 
 \section{Design}
+
 \subsection{Architecture}
-\begin{figure}
-  \includegraphics[width=\textwidth]{diagrams/arch.eps}
+With consultancy from Dr {\selectlanguage{vietnamese}Trần Giang Sơn},
+and collaboration with other interns\footnote{\selectlanguage{vietnamese}Lê
+Như Chu Hiệp, Nguyễn Phương Thảo, Nguyễn An Thiết, Trần Minh Hiếu
+and Nguyễn Quốc Thông}, it was decided that in the data lake, the core
+will be communicating with the query engine and public \gls{api}, which in
+turn take requests from other data lake services, e.g.~crawler and dashboard,
+and external clients and transform them to comply with the core \gls{api}.
+This is illustrated in figure \ref{arch}.
+
+On the other side, the core service encapsulates \gls{dfs} and \gls{dbms}
+and provide a consistent interface for those storages.  Therefore,
+the data lake core must also include clients to talk to these outside systems.
+For the content extraction use case, we added an \emph{extractor} component
+reading from the \gls{fs} and \gls{db}.  The result will be either sent
+directly through the core API or cached in the \gls{db}.
+
+\begin{figure}\centering
+  \includegraphics[scale=0.64]{diagrams/arch.eps}
+  \caption{Data lake overall architecture with focus on core's components}
+  \label{arch}
 \end{figure}
 
 \subsection{Technology Choices}
+In a perfect world, choices of technology would be made following
+all other design decisions.  However, existing technologies all have
+limitations (or at least trade-offs) that we need to be aware of to best
+decide on low-level details.
+
+\paragraph{Programming Languages}
+\paragraph{Distributed File System}
+\paragraph{Database Management System}
+\paragraph{Logging}
 
 \subsection{Interface}
 \begin{figure}
   \includegraphics[width=\textwidth]{diagrams/api.eps}
   \caption{Core HTTP API endpoints in a common order of access}
-  \label{db}
+  \label{api}
 \end{figure}
 
 \subsection{Database Schema}
@@ -282,7 +333,6 @@ in the core microservice for debugging purposes:
 \subsection{I/O Handling}
 \subsection{Query Transformations}
 \subsection{Concurrency}
-\subsection{Logging}
 
 \section{Quality Assurance}
 
@@ -318,6 +368,10 @@ for their feedbacks, collaborations and encouragements.  My family and friends
     Joseph Bowbeer and David Holmes.
     ``3.4. Immutability''.  \emph{Java Concurrency in Practice}.
     Addison Wesley Professional, 2006.  ISBN 9780321349606.
+  \bibitem{proto} Alan Mark Davis.
+    ``Operational Prototyping: A new Development Approach''.
+    \emph{IEEE Software}, vol.~9, no.~5, pp.~70--78.
+    IEEE, 1992.  \doi{10.1109/52.156899}.
 \end{thebibliography}
 
 \chapter{Terms and Acronyms}
