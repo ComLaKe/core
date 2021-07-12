@@ -32,7 +32,7 @@ import net.harawata.appdirs.AppDirsFactory;
 
 /** Configuration parsed from TOML, intended for read-only use. **/
 public class Configuration {
-    private static final String pathsep = System.getProperty("path.separator");
+    private static final String pathsep = System.getProperty("file.separator");
     private static final String cfg = pathsep + "core.toml";
     private static final String fallback = String.join(
         System.getProperty("line.separator"),
@@ -73,12 +73,12 @@ public class Configuration {
 
     public Configuration() {
         var appdirs = AppDirsFactory.getInstance();
-        var siteCfg = appdirs.getUserConfigDir("comlake", null, null) + cfg;
+        var siteCfg = appdirs.getSiteConfigDir("comlake", null, null) + cfg;
         var userCfg = appdirs.getUserConfigDir("comlake", null, null) + cfg;
-        var cfg = parse(new File(siteCfg), new File(userCfg));
-        ipfsMultiAddr = (String) cfg.get("ipfs-multiaddr");
-        psqlUrl = (String) cfg.get("psql-url");
-        psqlUser = (String) cfg.get("psql-user");
-        psqlPasswd = (String) cfg.get("psql-passwd");
+        var config = parse(new File(siteCfg), new File(userCfg));
+        ipfsMultiAddr = (String) config.get("ipfs-multiaddr");
+        psqlUrl = (String) config.get("psql-url");
+        psqlUser = (String) config.get("psql-user");
+        psqlPasswd = (String) config.get("psql-passwd");
     }
 }

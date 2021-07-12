@@ -67,10 +67,10 @@ public class PostgreSQL implements Database {
         pool = new ComboPooledDataSource();
         try {
             pool.setDriverClass("org.postgresql.Driver");
-            pool.setJdbcUrl("jdbc:postgresql:comlake");
+            pool.setJdbcUrl(url);
             // FIXME: credentials should be securely stored
-            pool.setUser("postgres");
-            pool.setPassword("postgres");
+            pool.setUser(user);
+            pool.setPassword(password);
         } catch (PropertyVetoException e) {
             // TODO: say something
         }
@@ -208,7 +208,6 @@ public class PostgreSQL implements Database {
              var statement = conn.prepareStatement(query)) {
             statement.executeUpdate();
         } catch (SQLException e) {
-            System.out.println(e);
         }
     }
 }
