@@ -1,0 +1,156 @@
+\chapter{Methodology}
+Development followed the evolutionary prototyping model: a robust prototype
+is built by improving and adding newly understood features~\cite{proto}.
+This often took 7--10 days, with requirements, design, implementation
+and test suite all being refined.
+
+\section{Requirement Analysis}
+In this section, from given context and objectives, we analyzed
+the expected system for a set of features and derived a list of use cases.
+Supplementary specifications were also added to elaborate
+on the nonfuntional requirements.
+
+\subsection{Use-Case Model}
+As previously introduced, the most basic functions of the data lake core
+are content uploading and downloading, along with datasets addition
+and querying.  A more advanced (and rather powerful) use case is
+content extraction, which allows one to fetch only the interested part
+of the content, e.g.~extracting rows matching a certain \gls{predicate}
+from (semi-)structured data.  Together with logging, the core's use cases
+are summarized in figure \ref{uc}.
+
+\begin{figure}\centering
+  \includegraphics[scale=0.64]{figures/uc.eps}
+  \caption{Use-case diagram of the core microservice}
+  \label{uc}
+\end{figure}
+
+\paragraph{Upload content}  This use case allows other microservices
+of the data lake to upload a \gls{content}.  Its flow of events is depicted
+as follows, where error handling is omitted for brevity, since all errors,
+if occur, replace the normal response.
+\begin{enumerate}
+  \item A \gls{content} is sent to the core microservice.
+  \item Core adds the content to the underlying storage
+    and register it to the \gls{db}.
+  \item Core responds with the \gls{cid} of the added \gls{content}.
+\end{enumerate}
+
+\paragraph{Add dataset}  This use case let other services add a dataset:
+\begin{enumerate}
+  \item A dataset is sent to the core microservice.
+  \item Core adds the dataset to the underlying \gls{db}.
+  \item Core responds with the \gls{id} of the added dataset.
+\end{enumerate}
+
+\paragraph{Find datasets}  This use case allows other services to find
+the datasets whose metadata satisfy a given \gls{predicate}:
+\begin{enumerate}
+  \item A \gls{predicate} is sent to the core microservice.
+  \item Core runs a query in the underlying \gls{db} to find matching datasets.
+  \item Core responds with a linear collection of metadata,
+    each of which satisfying the given \gls{predicate}.
+\end{enumerate}
+
+\paragraph{Download content}  In use case, other services fetch a \gls{content}
+from the data lake core.
+\begin{enumerate}
+  \item A \gls{cid} is sent to the core microservice.
+  \item Core passes the \gls{cid} to the underlying storage.
+  \item Core responds with the respective \gls{content}.
+\end{enumerate}
+
+\paragraph{Extract content}  This use case allows other services
+to extract a content's parts satisfying a given \gls{predicate}:
+\begin{enumerate}
+  \item A CID and a \gls{predicate} is sent to the core microservice.
+  \item Core iterates the content for matching elements.
+  \item Core responds with the extracted elements.
+\end{enumerate}
+
+\paragraph{Gather logs}  This use case let system admins study
+events occurring in the core microservice for debugging purposes:
+\begin{enumerate}
+  \item A system admin requests logs from core.
+  \item The admin receives the list of past events.
+\end{enumerate}
+
+\subsection{Supplementary Specification}
+Besides the functionalities specified in the previous section,
+the following non-functional requirements were pinned down.
+
+\paragraph{Performance}  Each instance of the data lake core should be able
+to respond up to 1000 simultaneous requests, which is approximated
+from the number of \gls{usth} researchers and students, every second.
+
+\paragraph{Supportability}  The data lake core and its dependencies must
+be able to run on common \gls{os}, including, but not limited to,
+\acrshort{gnu}/Linux, Windows and macOS.  While the microservice is likely
+to be deployed on \acrshort{gnu}/Linux, it is uncertain if it will be
+the future maintainers' \gls{os} of choice for development.  Furthermore,
+languages used for implementation and depended systems should be
+either familiar or easy to learn.
+
+\paragraph{Licensing}  The resulting software must be released under
+a copyleft license, in order to persist digital freedom in scientific research
+and education.
+
+\section{Design}
+
+\subsection{Architecture}
+With consultancy from Dr {\selectlanguage{vietnamese}Trần Giang Sơn},
+and collaboration with other interns\footnote{\selectlanguage{vietnamese}Lê
+Như Chu Hiệp, Nguyễn Phương Thảo, Nguyễn An Thiết, Trần Minh Hiếu
+and Nguyễn Quốc Thông}, it was decided that in the data lake, the core
+will be communicating with the query engine and public \gls{api}, which in
+turn take requests from other data lake services, e.g.~crawler and dashboard,
+and external clients and transform them to comply with the core \gls{api}.
+This is illustrated in figure \ref{arch}.
+
+On the other side, the core service encapsulates \gls{dfs} and \gls{dbms}
+and provide a consistent interface for those storages.  Therefore,
+the data lake core must also include clients to talk to these outside systems.
+For the content extraction use case, we added an \emph{extractor} component
+reading from the \gls{fs} and \gls{db}.  The result will be either sent
+directly through the core API or cached in the \gls{db}.
+
+\begin{figure}\centering
+  \includegraphics[scale=0.64]{figures/arch.eps}
+  \caption{Data lake overall architecture with focus on core's components}
+  \label{arch}
+\end{figure}
+
+\subsection{Technology Choices}
+In a perfect world, choices of technology would be made following
+all other design decisions.  However, existing technologies all have
+limitations (or at least trade-offs) that we need to be aware of to best
+decide on low-level details.
+
+\paragraph{Programming Languages}
+\paragraph{Distributed File System}
+\paragraph{Database Management System}
+\paragraph{Logging}
+
+\subsection{Interface}
+\begin{figure}
+  \includegraphics[width=\textwidth]{figures/api.eps}
+  \caption{Core HTTP API endpoints in a common order of access}
+  \label{api}
+\end{figure}
+
+\subsection{Database Schema}
+\begin{figure}
+  \includegraphics[width=\textwidth]{figures/db.eps}
+  \caption{Database schema}
+  \label{db}
+\end{figure}
+
+\subsection{Query Abstract Syntax Tree}
+
+\section{Implementation}
+\subsection{Error Handling}
+\subsection{I/O Handling}
+\subsection{Query Transformations}
+\subsection{Concurrency}
+
+\section{Quality Assurance}

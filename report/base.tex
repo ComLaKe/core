@@ -1,0 +1,44 @@
+\usepackage[vietnamese,english]{babel}
+\usepackage{lmodern}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{titling}
+\usepackage{ccicons}
+\usepackage[Bjornstrup]{fncychap}
+\usepackage{hyperref}
+\usepackage[titletoc]{appendix}
+\usepackage[numbib]{tocbibind}
+\usepackage[acronym,section,toc]{glossaries}
+\input{gls.tex}
+
+\newcommand{\doi}[1]{\href{https://doi.org/#1}{doi:#1}}
+\renewcommand{\thefootnote}{\fnsymbol{footnote}}
+
+\author{\selectlanguage{vietnamese}Nguyễn Gia Phong}
+\title{Development of Data Lake Core}
+
+\begin{document}
+\include{front/title.tex}
+\include{front/copying.tex}
+
+\frontmatter
+\setcounter{page}{1}
+\pagestyle{plain}
+\tableofcontents
+\input{front/decl.tex}
+%\chapter{Preface}
+%\chapter{Abstract}
+
+\mainmatter
+\pagestyle{headings}
+\include{main/intro.tex}
+\include{main/meth.tex}
+\include{main/outro.tex}
+\include{main/results.tex}
+
+\begin{appendices}
+  \input{appendices/ack.tex}
+  \input{appendices/bib.tex}
+  \chapter{Terms and Acronyms}\printglossaries
+\end{appendices}
+\end{document}
