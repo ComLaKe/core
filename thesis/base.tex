@@ -6,12 +6,14 @@
 \usepackage{ccicons}
 \usepackage[Bjornstrup]{fncychap}
 \usepackage{hyperref}
+\usepackage{siunitx}
 \usepackage[titletoc]{appendix}
 \usepackage[numbib]{tocbibind}
 \usepackage[acronym,section,toc]{glossaries}
 \input{gls.tex}
 
 \newcommand{\doi}[1]{\href{https://doi.org/#1}{doi:#1}}
+\newcommand{\bit}{b}
 \renewcommand{\thefootnote}{\fnsymbol{footnote}}
 
 \author{\selectlanguage{vietnamese}Nguyễn Gia Phong}
@@ -33,8 +35,8 @@
 \pagestyle{headings}
 \include{main/intro.tex}
 \include{main/meth.tex}
+\include{main/eval.tex}
 \include{main/outro.tex}
-\include{main/results.tex}
 
 \begin{appendices}
   \input{appendices/ack.tex}

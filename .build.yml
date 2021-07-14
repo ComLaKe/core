@@ -27,6 +27,6 @@ tasks:
       cd comlake.core
       lein uberjar
 artifacts:
-  - comlake.core/target/uberjar/comlake.core-0.4.1-standalone.jar
+  - comlake.core/target/uberjar/comlake.core-0.4.2-SNAPSHOT-standalone.jar
 environment:
   LEIN_SNAPSHOTS_IN_RELEASE: 1

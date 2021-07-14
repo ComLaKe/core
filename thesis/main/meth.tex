@@ -17,7 +17,7 @@ and querying.  A more advanced (and rather powerful) use case is
 content extraction, which allows one to fetch only the interested part
 of the content, e.g.~extracting rows matching a certain \gls{predicate}
 from (semi-)structured data.  Together with logging, the core's use cases
-are summarized in figure \ref{uc}.
+are summarized in figure~\ref{uc}.
 
 \begin{figure}\centering
   \includegraphics[scale=0.64]{figures/uc.eps}
@@ -82,6 +82,9 @@ the following non-functional requirements were pinned down.
 \paragraph{Performance}  Each instance of the data lake core should be able
 to respond up to 1000 simultaneous requests, which is approximated
 from the number of \gls{usth} researchers and students, every second.
+Furthermore, an instance should be able to maintain a high throughput
+for large datasets', preferably matching common local bandwidth
+(\SI{100}{\mega\bit\per\second} to \SI{1}{\giga\bit\per\second}).
 
 \paragraph{Supportability}  The data lake core and its dependencies must
 be able to run on common \gls{os}, including, but not limited to,
@@ -93,26 +96,35 @@ either familiar or easy to learn.
 
 \paragraph{Licensing}  The resulting software must be released under
 a copyleft license, in order to persist digital freedom in scientific research
-and education.
+and promote independence and cooperation in education~\cite{libredu}.
 
 \section{Design}
+% TODO: mention prior arts
 
 \subsection{Architecture}
-With consultancy from Dr {\selectlanguage{vietnamese}Trần Giang Sơn},
-and collaboration with other interns\footnote{\selectlanguage{vietnamese}Lê
+Considering ICTLab's dynamic budget, the microservice architecture was chosen
+by Dr {\selectlanguage{vietnamese}Trần Giang Sơn} for the ease of scaling
+individual services out only when in need.  Through his consultancy
+and discussions with other interns\footnote{\selectlanguage{vietnamese}Lê
 Như Chu Hiệp, Nguyễn Phương Thảo, Nguyễn An Thiết, Trần Minh Hiếu
-and Nguyễn Quốc Thông}, it was decided that in the data lake, the core
-will be communicating with the query engine and public \gls{api}, which in
-turn take requests from other data lake services, e.g.~crawler and dashboard,
-and external clients and transform them to comply with the core \gls{api}.
-This is illustrated in figure \ref{arch}.
+and Nguyễn Quốc Thông}, it was decided requests from external clients
+and most internal services would go through a public \gls{api} for
+authentication and authorization before being transformed to comply with
+and passed to the core \gls{api}.
+
+With the core service optimized for high \gls{io} performance (high throughput
+and low latency), operations of order of growth higher than linear complexity
+would be off-loaded to query engines for better horizontal scaling
+of compute-intensive tasks.
 
 On the other side, the core service encapsulates \gls{dfs} and \gls{dbms}
-and provide a consistent interface for those storages.  Therefore,
+and provides a consistent interface for those storages.  Therefore,
 the data lake core must also include clients to talk to these outside systems.
 For the content extraction use case, we added an \emph{extractor} component
-reading from the \gls{fs} and \gls{db}.  The result will be either sent
-directly through the core API or cached in the \gls{db}.
+reading from the \gls{fs} and \gls{db}.  The result will be either responded
+directly through the core API or cached in the \gls{db}.  The flow directions
+of data between previously discussed components are illustrated
+in figure~\ref{arch}.
 
 \begin{figure}\centering
   \includegraphics[scale=0.64]{figures/arch.eps}
@@ -149,8 +161,9 @@ decide on low-level details.
 
 \section{Implementation}
 \subsection{Error Handling}
-\subsection{I/O Handling}
+\subsection{Input/Output Handling}
 \subsection{Query Transformations}
 \subsection{Concurrency}
+\subsection{Configuration Parsing}
 
 \section{Quality Assurance}
