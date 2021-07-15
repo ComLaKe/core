@@ -1,4 +1,5 @@
 @startuml
+!theme plain
 (*) --> "POST /file" as save
 (*) --> "POST /dir" as mkdir
 save --> "POST /cp" as cp
@@ -9,8 +10,8 @@ cp --> "POST /update" as update
 save --> update
 
 (*) --> "POST /find" as find
-find --> "GET /ls/{cid}"
-find --> "GET /get/{cid}"
-find --> "GET /schema/{cid}"
-find --> "POST /extract/{cid}"
+find --> "GET /dir/{cid}"
+find --> "GET /file/{cid}"
+find ---> "GET /schema/{cid}"
+find ---> "POST /extract/{cid}"
 @enduml

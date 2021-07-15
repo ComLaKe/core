@@ -1,8 +1,10 @@
 @startuml
+!theme plain
+
 node Core {
     component Database as meta
-    component "File System" as files
-    component "Core API" as http
+    component FileSystem as files
+    component HttpHandler as http
     component Extractor as extract
 }
 
@@ -14,17 +16,10 @@ meta <--> PostgreSQL
 
 http <--> files
 http <--> meta
-http <-- extract
-extract <-- files
-extract <--> meta
+http <-right- extract
+extract <-down- files
+extract <-down-> meta
 
-node "Query Engine" as query
-query <--> http
-
-node "Public API" as api
-api <--> query
-api <--> http
-
-cloud "Crawler, Dashboard, User" as client <<Clients>>
-client <--> api
+cloud "Public API and Query Engine" as client
+client <--> http : HTTP
 @enduml

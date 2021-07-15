@@ -6,15 +6,17 @@
 \usepackage{ccicons}
 \usepackage[Bjornstrup]{fncychap}
 \usepackage{hyperref}
+\usepackage{enumitem}
 \usepackage{siunitx}
 \usepackage[titletoc]{appendix}
 \usepackage[numbib]{tocbibind}
 \usepackage[acronym,section,toc]{glossaries}
 \input{gls.tex}
 
+\newcommand{\arxiv}[1]{\href{https://arxiv.org/abs/#1}{arXiv:#1}}
 \newcommand{\doi}[1]{\href{https://doi.org/#1}{doi:#1}}
+\newcommand{\rfc}[1]{\doi{10.17487/rfc#1}}
 \newcommand{\bit}{b}
-\renewcommand{\thefootnote}{\fnsymbol{footnote}}
 
 \author{\selectlanguage{vietnamese}Nguyễn Gia Phong}
 \title{Development of Data Lake Core}
@@ -33,6 +35,8 @@
 
 \mainmatter
 \pagestyle{headings}
+\setcounter{secnumdepth}{3}
+\setlist{nosep}
 \include{main/intro.tex}
 \include{main/meth.tex}
 \include{main/eval.tex}

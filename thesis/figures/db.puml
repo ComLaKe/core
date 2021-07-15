@@ -1,5 +1,7 @@
 @startuml
+!theme plain
 left to right direction
+
 entity File {
     * cid : text
     --
@@ -10,7 +12,7 @@ entity File {
 entity Entry {
     * id : bigserial <<generated>>
     --
-    * file : bigint <<foreign key>>
+    * content : bigint <<foreign key>>
     * description : text
     * source : text
     * topics : text[]

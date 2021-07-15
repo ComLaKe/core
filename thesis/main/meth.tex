@@ -10,7 +10,7 @@ the expected system for a set of features and derived a list of use cases.
 Supplementary specifications were also added to elaborate
 on the nonfuntional requirements.
 
-\subsection{Use-Case Model}
+\subsection{Use-Case Model}\label{uc-model}
 As previously introduced, the most basic functions of the data lake core
 are content uploading and downloading, along with datasets addition
 and querying.  A more advanced (and rather powerful) use case is
@@ -20,7 +20,7 @@ from (semi-)structured data.  Together with logging, the core's use cases
 are summarized in figure~\ref{uc}.
 
 \begin{figure}\centering
-  \includegraphics[scale=0.64]{figures/uc.eps}
+  \includegraphics[height=0.45\textheight]{figures/uc.eps}
   \caption{Use-case diagram of the core microservice}
   \label{uc}
 \end{figure}
@@ -99,7 +99,13 @@ a copyleft license, in order to persist digital freedom in scientific research
 and promote independence and cooperation in education~\cite{libredu}.
 
 \section{Design}
-% TODO: mention prior arts
+The design to be presented takes inspiration from several prior arts, such as
+Qri and Kylo, especially for high-level ideas.  However, these technologies
+were deemed unsuitable for \gls{usth} due to their goal and scope differences.
+Qri is a peer-to-peer application which may have unpredictable performance
+for larger but unpopular datasets, and only supports tabular data~\cite{qri}.
+Kylo also does not support binary data, while requires substantial resources
+for each instance~\cite{kylo}.
 
 \subsection{Architecture}
 Considering ICTLab's dynamic budget, the microservice architecture was chosen
@@ -127,7 +133,7 @@ of data between previously discussed components are illustrated
 in figure~\ref{arch}.
 
 \begin{figure}\centering
-  \includegraphics[scale=0.64]{figures/arch.eps}
+  \includegraphics[height=0.45\textheight]{figures/arch.eps}
   \caption{Data lake overall architecture with focus on core's components}
   \label{arch}
 \end{figure}
@@ -138,17 +144,90 @@ all other design decisions.  However, existing technologies all have
 limitations (or at least trade-offs) that we need to be aware of to best
 decide on low-level details.
 
-\paragraph{Programming Languages}
-\paragraph{Distributed File System}
-\paragraph{Database Management System}
-\paragraph{Logging}
+\begin{figure}\centering
+  \includegraphics[height=0.45\textheight]{figures/tech.eps}
+  \caption{Data lake core high-level architecture}
+  \label{tech}
+\end{figure}
+
+\subsubsection{Logging}
+Events are logged to standard output/error to be picked up
+by the logging service provided by the \gls{os} for maximum portability.
+On most GNU/Linux distributions, journald does this for every systemd service
+and can be configured to upload to any remote endpoint~\cite{journal}
+for debugging convenience.
+
+\subsubsection{Communication protocol}
+\gls{grpc} was first chosen for its high performance, but was later replaced
+by \gls{http} due to the lack of multi-parameter streaming methods.  This is
+essential for transporting data together with their metadata and was done
+by treating metadata as \gls{http} headers.  As \gls{grpc} uses \gls{http}
+under the hood, the change in protocol would not add any overhead.
+
+\subsubsection{Programming languages}
+Java\footnote{\url{https://oracle.com/java}} was picked among languages
+included in any course from the university's \gls{ict} major, for \gls{jvm}
+implementations' performance (comparing to other general-purpose languages'
+runtime with garbage-collection~\cite{game}).  The \gls{jvm} also offers
+great interoperability with other languages.  For interacting with dynamic data
+types, Clojure\footnote{\url{https://clojure.org}} was used to avoid
+performing Java reflection.
+
+\subsubsection{Distributed file system}
+\gls{hdfs} was initially considered because of Hadoop's popularity
+in state-of-the-art data lakes~\cite{lake}, however its lack of presence
+in every Unix-like \gls{os}'s repository~\cite{hdfs} (and the reasons behind it)
+is an deployment obstacle.
+
+After analyzing several alternatives, \gls{ipfs}\footnote{\url{https://ipfs.io}}
+was chosen for its cluster's ability to organically grow or shrink nodes
+without any performance interruption thanks to \gls{crdt} consensus~\cite{crdt}.  In addition, the use of Merkle directed acyclic graphs makes it an append-only
+storage with bidirectional mapping between content and \gls{cid}
+while maintaining data integrity~\cite{ipfs}.
+
+\subsubsection{Database management system}
+Early prototypes used RethinkDB\footnote{\url{https://rethinkdb.com}}
+for its embedded query language and dynamic data support.  Due to the lack
+of a client with connection pool for \gls{jvm}, though, we had to switched
+to PostgreSQL, which also natively support semi-structured data, to use
+its \gls{jdbc} driver and improve the performance.
+
+It is worth noting that the connection to both \gls{dfs} and \gls{dbms}
+must be abstracted for modularity.  It is entirely possible that in the future
+the choices for those will no longer be the most suitable, and the transition
+to a fitter technology should be as frictionless as possible.  The interfaces
+for the clients of these persistency systems were named following
+Java convention as shown in figure~\ref{tech}.
 
 \subsection{Interface}
+The \gls{api} was derived from the use cases quite straightforwardly.
+Figure~\ref{api} sums up the available endpoints in a logical order.
+All appending operations are arranged on the left and the endpoints
+on the right are for retrieving the added data.
 \begin{figure}
   \includegraphics[width=\textwidth]{figures/api.eps}
   \caption{Core HTTP API endpoints in a common order of access}
   \label{api}
 \end{figure}
+
+\begin{itemize}
+  \item\verb|POST /dir|: Create an empty directory.
+  \item\verb|POST /file|: Add the file to the underlying file system.
+  \item\verb|POST /cp|: Copy file or directory inside a directory.
+  \item\verb|POST /dataset|: Add the dataset to the lake.
+  \item\verb|POST /update|: Add the updated dataset to the lake.
+  \item\verb|POST /find|: Find the data according to the given predicate.
+  \item\verb|GET /dir/{cid}|: List content of a file system directory.
+  \item\verb|GET /file/{cid}|: Stream content from underlying file system.
+  \item\verb|GET /schema/{cid}|: Fetch the JSON schema
+    of a (semi-)structured content (a file in \gls{json} or \gls{csv} format).
+  \item\verb|POST /extract/{cid}|: Extract rows from
+    a (semi-)structured content.
+\end{itemize}
+
+One notable difference to the \nameref{uc-model} is that operations directly
+on contents are separated for files and folders.  Another is the endpoint
+for JSON schema: this shall be explained in subsection \ref{future}.
 
 \subsection{Database Schema}
 \begin{figure}
@@ -160,10 +239,15 @@ decide on low-level details.
 \subsection{Query Abstract Syntax Tree}
 
 \section{Implementation}
+
 \subsection{Error Handling}
+
 \subsection{Input/Output Handling}
+
 \subsection{Query Transformations}
-\subsection{Concurrency}
+
+\subsection{Concurrency}\label{future}
+
 \subsection{Configuration Parsing}
 
 \section{Quality Assurance}
