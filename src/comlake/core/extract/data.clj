@@ -32,5 +32,6 @@
   (when-let [result (case mime
                       "application/json" (filter predicate (json/read reader))
                       "text/csv" (filter predicate
-                                         (csv->json (read-csv reader))))]
+                                         (csv->json (read-csv reader)))
+                      nil)]
     (json/write-str result)))

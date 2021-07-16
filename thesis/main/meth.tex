@@ -27,8 +27,8 @@ are summarized in figure~\ref{uc}.
 
 \paragraph{Upload content}  This use case allows other microservices
 of the data lake to upload a \gls{content}.  Its flow of events is depicted
-as follows, where error handling is omitted for brevity, since all errors,
-if occur, replace the normal response.
+as follows, where error handling is omitted for brevity, since errors
+replace the normal response.
 \begin{enumerate}
   \item A \gls{content} is sent to the core microservice.
   \item Core adds the content to the underlying storage
@@ -362,9 +362,7 @@ by memoizing the future.  In Clojure, this was done as follows:
 (defn metadata-extractor
   "Construct a metadata extractor."
   [...]
-  (memoize (fn [cid mime]
-             ...
-             (future ...))))
+  (memoize (fn [cid mime] (future ...))))
 \end{verbatim}
 
 \subsection{Query Transformations}
@@ -389,7 +387,8 @@ Because \verb|pred| is created from \verb|op|, the latter must be of the form
 \verb|(fn [args] (fn [row] ...))|.  As operators are applied recursively,
 \verb|args| is a collections of \verb|pred|, or each one in \verb|args|
 must be called with row: \verb|(map #(% row) args)|.  Combining all these,
-a operator mapping for normal functions was implemented as follows.
+a operator mapping for normal functions was implemented as follows\footnote{The
+final implementation involved some additional null-checking.}.
 \begin{verbatim}
 (defn mkfn [func]
   (fn [args]
@@ -399,6 +398,12 @@ a operator mapping for normal functions was implemented as follows.
 For example, \verb|(mkfn +)| is an \verb|op| for addition.  Macros, however,
 cannot be passed to \verb|mkfn| so their more generic functional equivalent
 was used instead, like \verb|every? identity| replacing \verb|apply and|.
+After some preprocessing, supported (semi-)structured data (\gls{json}
+and \gls{csv}) are filtered by the same \verb|pred|.
+
+With the same \gls{qast} being used for PostgreSQL, JSON and CSV,
+query polymorphism has been achieved, which simplifies and unifies
+the \gls{api}.
 
 \subsection{Configuration Parsing}
 For the ease of deployment, settings for connection to PostgreSQL

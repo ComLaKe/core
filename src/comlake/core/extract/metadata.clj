@@ -53,24 +53,24 @@
                 "properties" (zipmap names types)}})))
 
 (defn schema
-  "Return future to schema of given content."
+  "Return schema of given content."
   [cid mime fs db]
-  (future
-    (let [saved (.getSchema db cid)]
-      (if (blank? saved)
-        (let [result (case mime
-                       "application/json" (infer-json cid fs)
-                       "text/csv" (infer-csv cid fs))]
-          (.setSchema db cid result) ; run this async?
-          result)
-        saved))))
+  (let [saved (.getSchema db cid)]
+    (if (blank? saved)
+      (let [result (case mime
+                     "application/json" (infer-json cid fs)
+                     "text/csv" (infer-csv cid fs))]
+        (.setSchema db cid result) ; run this async?
+        result)
+      saved)))
 
 (defn metadata-extractor
-  "Construct an extractor updating given database."
+  "Construct an extractor updating given database in the future."
   [fs db]
   ;; TODO: invalidate cache
   (memoize (fn [cid mime]
-             (case mime
-               ("application/json" "text/csv") (schema cid mime fs db)
-               ;; TODO: multimedia metadata
-               nil))))
+             (future
+               (case mime
+                 ("application/json" "text/csv") (schema cid mime fs db)
+                 ;; TODO: multimedia metadata
+                 nil)))))

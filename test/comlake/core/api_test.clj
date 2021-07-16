@@ -38,6 +38,10 @@
 (def interjection-cid "QmbwXK2Wg6npoAusr9MkSduuAViS6dxEQBNzqoixanVtj5")
 (def combined-dir-cid "QmPao7zTNvuqH2pAVUgquYXgEhqoiTBpdjU7AwgZvsta9r")
 (def empty-dir-cid "QmUNLLsPACCz1vLxQVkXqqLX5R1X345qqfHbsf67hvA3Nn")
+(def projects-json (resource "test/projects.json"))
+(def projects-json-cid "QmNeJeXFw7d6HycKtdw7D2LfyPP1YtkyU4FhCXLdoDeFYD")
+(def population-csv (resource "test/population.csv"))
+(def population-csv-cid "QmPVydGNAbc7t4CEf3qxETRNjYkXotABEeN2WBXkkGNc5H")
 (def json-body (comp json/read reader :body))
 
 (defn make-url
@@ -62,15 +66,29 @@
 
 (deftest post-file
   (let [url (make-url "/file")
-        headers {:content-length (.length (file interjection))
-                 :content-type "text/plain"}]
-    (testing "success"
+        headers-plain {:content-length (.length (file interjection))
+                       :content-type "text/plain"}
+        headers-json {:content-length (.length (file projects-json))
+                      :content-type "application/json"}
+        headers-csv {:content-length (.length (file population-csv))
+                     :content-type "text/csv"}]
+    (testing "plain"
       (with-open [stream (input-stream interjection)]
-        (let [response @(http-post url {:headers headers :body stream})]
+        (let [response @(http-post url {:headers headers-plain :body stream})]
           (is (and (= 200 (:status response))
                    (= interjection-cid (get (json-body response) "cid")))))))
+    (testing "json"
+      (with-open [stream (input-stream projects-json)]
+        (let [response @(http-post url {:headers headers-json :body stream})]
+          (is (and (= 200 (:status response))
+                   (= projects-json-cid (get (json-body response) "cid")))))))
+    (testing "csv"
+      (with-open [stream (input-stream population-csv)]
+        (let [response @(http-post url {:headers headers-csv :body stream})]
+          (is (and (= 200 (:status response))
+                   (= population-csv-cid (get (json-body response) "cid")))))))
     (testing "empty data"
-      (let [response @(http-post url {:headers (assoc headers
+      (let [response @(http-post url {:headers (assoc headers-plain
                                                       :content-length 0)})]
         (is (and (= 400 (:status response))
                  (= "empty data" (get (json-body response) "error"))))))))
@@ -164,6 +182,41 @@
                (= "content not found"
                   (get (json-body response) "error")))))))
 
+(deftest get-schema
+  (testing "success"
+    (let [response @(http-get (make-url (str "/schema/" projects-json-cid)))]
+      (is (and (= 200 (:status response))
+               (= ["object"]
+                  (-> response json-body (get "items") (get "type")))))))
+  (testing "unsupported"
+    (let [response @(http-get (make-url (str "/schema/" interjection-cid)))]
+      (is (and (= 400 (:status response))
+               (= "unsupported data type"
+                  (get (json-body response) "error")))))))
+
+(deftest post-extract
+  (let [url (make-url (str "/extract/" population-csv-cid))
+        query ["~" ["." ["$"] "country_name"] "Vi.tnam"]]
+    (testing "csv"
+      (let [response @(http-post url {:body (json/write-str query)})]
+        (is (and (= 200 (:status response))
+                 (= "VNM" (-> response json-body first
+                              (get "country_code")))))))
+    (testing "json"
+      (let [json-url (make-url (str "/extract/" projects-json-cid))
+            response @(http-post json-url {:body (json/write-str query)})]
+        (is (and (= 200 (:status response))
+                 (empty? (json-body response))))))
+    (testing "malform"
+      (let [response @(http-post url {:body "["})]
+        (is (and (= 400 (:status response))
+                 (= "malformed query" (get (json-body response) "error"))))))
+    (testing "failure"
+      (let [plain-url (make-url (str "/extract/" interjection-cid))
+            response @(http-post plain-url {:body (json/write-str query)})]
+        (is (and (= 400 (:status response))
+                 (= "failed query" (get (json-body response) "error"))))))))
+
 (deftest not-found
   (let [response @(http-get (make-url "/this/endpoint/is/unsupported"))]
     (is (and (= 404 (:status response))
@@ -180,5 +233,7 @@
          (post-find)
          (get-file)
          (get-dir)
+         (get-schema)
+         (post-extract)
          (finally (.close server)
                   (wait-for-close server)))))

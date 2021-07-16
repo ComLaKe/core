@@ -72,22 +72,33 @@
                  (catch Exception e nil))]
     (when ast (qast->psql ast))))
 
+(defn not-nil-fn
+  "Check for nil in operations result."
+  [args row]
+  (let [operands (map #(% row) args)]
+    (when (every? some? operands)
+      operands)))
+
 (defn mkfn
   "Construct a function returning a lambda lazily applying given operator."
   [op]
   (fn [args]
     (fn [row]
-      (apply op (map #(% row) args)))))
+      (when-let [operands (not-nil-fn args row)]
+        (apply op operands)))))
 
 (def ops-fn
   "Supported query operators and their predicates for number of operands."
   {"$" [(constantly identity) #(= % 0)]
    "." [(fn [args]
-          (fn [row] (reduce #(get %1 %2) (map #(% row) args)))) #(> % 1)]
+          (fn [row]
+            (when-let [operands (not-nil-fn args row)]
+              (reduce #(get %1 %2) operands)))) #(> % 1)]
    "~" [(fn [args]
           (fn [row]
             (let [[s p] (map #(% row) args)]
-              (re-matches (re-pattern p) s)))) #(= % 2)]
+              (when (and (some? p) (some? s))
+                (re-matches (re-pattern p) s))))) #(= % 2)]
    "+" [(mkfn +) #(> % 0)]
    "-" [(mkfn -) #(> % 0)]
    "*" [(mkfn *) #(> % 0)]
@@ -99,7 +110,7 @@
    ">=" [(mkfn >=) #(> % 1)]
    "<" [(mkfn <) #(> % 1)]
    "<=" [(mkfn <=) #(> % 1)]
-   "&&" [#(apply format "%s && %s" %) #(= % 2)] ; TODO
+   ;; TODO: "&&" [#(apply format "%s && %s" %) #(= % 2)]
    "&" [(fn [args]
           (fn [row] (every? identity (map #(% row) args)))) any?]
    "|" [(fn [args]
@@ -113,9 +124,7 @@
   (if (vector? ast)
     (if-let [[op valid?] (get ops-fn (first ast))]
       (when (valid? (dec (count ast)))
-        (let [args (map qast->fn (rest ast))]
-          (when (every? some? args)
-            (op args))))
+        (op (map qast->fn (rest ast))))
       (constantly ast))
     (constantly ast)))
 
