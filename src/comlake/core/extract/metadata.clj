@@ -66,8 +66,8 @@
         saved))))
 
 (defn metadata-extractor
-  [fs db]
   "Construct an extractor updating given database."
+  [fs db]
   ;; TODO: invalidate cache
   (memoize (fn [cid mime]
              (case mime

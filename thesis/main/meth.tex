@@ -12,7 +12,7 @@ on the nonfuntional requirements.
 
 \subsection{Use-Case Model}\label{uc-model}
 As previously introduced, the most basic functions of the data lake core
-are content uploading and downloading, along with datasets addition
+are \gls{content} uploading and downloading, along with datasets addition
 and querying.  A more advanced (and rather powerful) use case is
 content extraction, which allows one to fetch only the interested part
 of the content, e.g.~extracting rows matching a certain \gls{predicate}
@@ -100,8 +100,8 @@ and promote independence and cooperation in education~\cite{libredu}.
 
 \section{Design}
 The design to be presented takes inspiration from several prior arts, such as
-Qri and Kylo, especially for high-level ideas.  However, these technologies
-were deemed unsuitable for \gls{usth} due to their goal and scope differences.
+Qri and Kylo, especially for high-level ideas.  However, these technologies were
+deemed as unsuitable for \gls{usth} due to their goal and scope differences.
 Qri is a peer-to-peer application which may have unpredictable performance
 for larger but unpopular datasets, and only supports tabular data~\cite{qri}.
 Kylo also does not support binary data, while requires substantial resources
@@ -181,16 +181,17 @@ is an deployment obstacle.
 
 After analyzing several alternatives, \gls{ipfs}\footnote{\url{https://ipfs.io}}
 was chosen for its cluster's ability to organically grow or shrink nodes
-without any performance interruption thanks to \gls{crdt} consensus~\cite{crdt}.  In addition, the use of Merkle directed acyclic graphs makes it an append-only
-storage with bidirectional mapping between content and \gls{cid}
-while maintaining data integrity~\cite{ipfs}.
+without any performance interruption thanks to \gls{crdt} consensus~\cite{crdt}.
+In addition, the use of Merkle \gls{dag} makes it an append-only storage
+with bidirectional mapping between content and \gls{cid} while maintaining
+data integrity and eliminating content duplication~\cite{ipfs}.
 
 \subsubsection{Database management system}
 Early prototypes used RethinkDB\footnote{\url{https://rethinkdb.com}}
 for its embedded query language and dynamic data support.  Due to the lack
 of a client with connection pool for \gls{jvm}, though, we had to switched
-to PostgreSQL, which also natively support semi-structured data, to use
-its \gls{jdbc} driver and improve the performance.
+to PostgreSQL\footnote{\url{https://postgresql.org}}, which also natively support
+semi-structured data, to use its \gls{jdbc} driver and improve the performance.
 
 It is worth noting that the connection to both \gls{dfs} and \gls{dbms}
 must be abstracted for modularity.  It is entirely possible that in the future
@@ -229,25 +230,190 @@ One notable difference to the \nameref{uc-model} is that operations directly
 on contents are separated for files and folders.  Another is the endpoint
 for JSON schema: this shall be explained in subsection \ref{future}.
 
+Except for file upload requests and file download responses, all communication
+is done in \gls{json}.
+
 \subsection{Database Schema}
+The external \gls{db} is used for storing metadata.  For \glspl{content},
+other than the \gls{cid}, only the \gls{mime} type is required,
+while \emph{extra} fields can be stored under a \verb|jsonb| column---as
+a relational database, PostgreSQL cannot provide optional columns.
+Each content can then be represented by multiple datasets under
+different metadata, or it can be a child of a represented one.
+
+On the other hand, a dataset must be backed by exactly one content,
+so its \gls{cid} could be used as a foreign key.  A few generic properties
+were believed to be common and useful for indexing, and thus were required:
+\emph{description}, \emph{source} and \emph{topics}.  Whilst the first two
+might be helpful in a full-text search, \emph{topics} is an array of
+keywords which can be used to arrange datasets in a hierarchical view.
+
+To encourage derivation of datasets and support reproducibility, a new entry
+is created upon \verb|POST /update| instead of in-place modification.  It is
+linked to the \emph{parent} through the \gls{id} and create a \gls{tree}
+of datasets that can be reconstructed from a query output.
+
+The described relations were visualized in figure~\ref{db}.
+
 \begin{figure}
   \includegraphics[width=\textwidth]{figures/db.eps}
-  \caption{Database schema}
+  \caption{PostgreSQL schema for the data lake core}
   \label{db}
 \end{figure}
 
-\subsection{Query Abstract Syntax Tree}
+\subsection{Query Language}
+Both \verb|POST /find| and \verb|POST /extract/{cid}| require a \gls{predicate}
+for searching.  Since the core \gls{api} acts as a bridge between storages
+and higher-level services, it would be best to use a language as simple
+as possible to express the condition.  In compilers, it is common to use
+an \gls{ast} as an intermediate language.
+
+More precisely, an \gls{ast} is not a language, but any tree can
+be unambiguously represented by a nested list with a prefix notation.
+Its most well-known form is the S-expression, which has been popularized
+by the Lisp family of programming languages~\cite{sexpr}.  However, it is
+rarely supported by mainstream technologies, while \gls{json} has been
+growing in popularity.  Therefore, the \gls{qast} would be expressed
+in \gls{json} nested arrays instead of parenthesized lists.  To comply
+with \gls{json} syntax, operators must be quoted as a string, for example
+the addition operator is \verb|"+"|.  The following are supported:
+\begin{itemize}
+  \item Arithmetic operators: addition (+), subtraction (-), multiplication (*),
+    division (/) and modulo (\%)
+  \item Logical operators: \emph{and} (\&), \emph{or} ($\vert$)
+    and \emph{not} (!)
+  \item Comparison: ==, !=, $>$, $>=$, $<$, $<=$,
+    \~ (regular expression matching) and \&\& (intersection)
+  \item Field access: current row (\$) and field getter (\verb|.|)
+\end{itemize}
+
+An expression may support more than two operands.  This helps flatten the query
+and applies to most logical and arithmetic operators (except for modulo)
+and the field getter.
 
 \section{Implementation}
+The implementation is hosted on GitHub under the ComLake
+namespace\footnote{\url{https://github.com/ComLake/comlake.core}}.
+For the most part, it was derived directly from the design
+and use-case sequences.  This section is dedicated for low-level designs
+and implementation details of less obvious cases.
 
 \subsection{Error Handling}
+In Java, errors are propagated through exceptions.  While they are beneficial
+in certain ways, lexical scoping in \verb|try|/\verb|catch| blocks makes it
+impossible to put just a variable declaration with initialization in
+a \verb|try| block.  This means errors from subsequent statements using
+the variable are implicitly caught in the same handling, which can
+be unintentional\footnote{One may alternatively declare the variable before
+the assignment, but uninitialized variables are subject to a different
+class of error.}.
 
-\subsection{Input/Output Handling}
+Moreover, information from exceptions are usually meant for debugging,
+not to used by the program.  Instead of defining wrapping exceptions
+to re-raise everywhere, we created an \verb|Outcome| generic class
+with the following signature:
+\begin{verbatim}
+public class Outcome<Result, Error> {
+    public boolean ok;
+    public Result result;
+    public Error error;
+    public static <Result, Error>
+      Outcome<Result, Error> pass(Result value);
+    public static <Result, Error>
+      Outcome<Result, Error> fail(Error value);
+}
+\end{verbatim}
+
+An \verb|Outcome<Result, Error>| should be used as a return type,
+where \verb|Result| is the type of the original return value, and \verb|Error|
+can be anything the caller can analyze, including compound data like sets
+and hash tables.
+
+\subsection{Input/Output and Concurrency}\label{future}
+As the data lake often work with large datasets, it would not be possible
+to load an entire request body into memory\footnote{\gls{ipfs} client for Java
+needed a patch to enable request streaming but upstream was irresponsive so a
+fork has been maintained ever since.}.  Instead, an asynchronous \gls{io} model
+was adopted.  In the outermost layer, Aleph\footnote{\url{https://aleph.io}}
+and Netty\footnote{\url{https://netty.io}} are used to turn \gls{http}
+requests and responds into and from \verb|java.io.InputStream|.  These streams
+are only read or immediately written when ready, allowing us to apply
+back-pressure from connected storages.
+
+In addition, instead of blocking operations by filling \gls{io} buffer,
+this concurrency model switches to the remaining tasks.  Multiple tasks
+are executed simultaneously in one thread so fewer threads need to be created,
+resulting in lower overhead and better performance.
+
+Such thread pools are also utilized for metadata discovery, such as
+schema inferring.  When a \gls{content} is uploaded, its metadata extractor job
+is added to the pool and run in parallel with the \gls{http} handler.
+While this does not matches the definition of a data lake (schema on read),
+it allows such metadata to present in the dataset search (\verb|POST /find|)
+without the client explicitly requesting for each entry.  That being said,
+in order to extract \emph{data}, the client needs to be aware of the schema
+and should not be pooling on the search endpoint.  Hence,
+\verb|GET /schema/{cid}| exists as a synchronization point.
+
+Moreover, as it is possible for the schema to be requested before the scheduled
+inferring job finishes and duplicate the task, such race condition is minimized
+by memoizing the future.  In Clojure, this was done as follows:
+\begin{verbatim}
+(defn metadata-extractor
+  "Construct a metadata extractor."
+  [...]
+  (memoize (fn [cid mime]
+             ...
+             (future ...))))
+\end{verbatim}
 
 \subsection{Query Transformations}
+As the \gls{qast} is used for both \verb|POST /extract/{cid}|
+and \verb|POST /find|, it is respectively translated into \gls{jvm}
+and \gls{sql} for processing.  First, the original \gls{json} request body
+is converted to a Clojure \verb|vector|.  Its first element is then looked up
+in the operator table and the rest are recursively applied to the found function
+\verb|op| if the number of arguments is valid.
 
-\subsection{Concurrency}\label{future}
+When translate to \gls{sql}, in \verb|op| is simply string concatenation
+with the operator strings.  Since these expressions are in-fix, it is necessary
+to wrap parentheses around them.  Strings and arrays also need special
+formatting to be recognized by PostgreSQL when the result is used
+as a \verb|WHERE| clause.
+
+To extract content, it is slightly more complex: the result has to be
+a Clojure function \verb|pred| to be passed to the higher-order \verb|filter|
+along with a collection of Clojure \verb|map|.  Let \verb|row| be
+a \verb|map|, \verb|pred| would have the signature \verb|(fn [row] ...)|.
+Because \verb|pred| is created from \verb|op|, the latter must be of the form
+\verb|(fn [args] (fn [row] ...))|.  As operators are applied recursively,
+\verb|args| is a collections of \verb|pred|, or each one in \verb|args|
+must be called with row: \verb|(map #(% row) args)|.  Combining all these,
+a operator mapping for normal functions was implemented as follows.
+\begin{verbatim}
+(defn mkfn [func]
+  (fn [args]
+    (fn [row] (apply func (map #(% row) args)))))
+\end{verbatim}
+
+For example, \verb|(mkfn +)| is an \verb|op| for addition.  Macros, however,
+cannot be passed to \verb|mkfn| so their more generic functional equivalent
+was used instead, like \verb|every? identity| replacing \verb|apply and|.
 
 \subsection{Configuration Parsing}
+For the ease of deployment, settings for connection to PostgreSQL
+and \gls{ipfs} are read from configuration files instead of being hard-coded.
+TOML was chosen as the format and configurations are fallen back
+user to system configuration file and finally hard-coded defaults.
+Their locations on different \gls{os}'s are determined by the library
+AppDirs\footnote{\url{https://github.com/harawata/appdirs}}.
 
 \section{Quality Assurance}
+To assure the correctness of the implementations, multiple testing methods
+are used.  The automated test suite were written as a mixture of
+both integration and unit tests, aiming for at least \SI{90}{\percent}
+line coverage.  They were run locally as well as on SourceHut CI
+service\footnote{\url{https://builds.sr.ht/~cnx/comlake.core}}
+to test the deployment of depending services as well.  An instance
+was also set up on ICTLab with the help and manual testing
+of {\selectlanguage{vietnamese}Lê Như Chu Hiệp and Nguyễn Phương Thảo}.

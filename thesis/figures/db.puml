@@ -2,23 +2,23 @@
 !theme plain
 left to right direction
 
-entity File {
+entity content {
     * cid : text
     --
     * type : text
-    * extra : json
+    * extra : jsonb
 }
 
-entity Entry {
+entity dataset {
     * id : bigserial <<generated>>
     --
     * content : bigint <<foreign key>>
     * description : text
     * source : text
     * topics : text[]
-    * extra : json
+    * extra : jsonb
     parent : bigint <<foreign key>>
 }
 
-Entry }|..|| File
+dataset }o..|| content
 @enduml

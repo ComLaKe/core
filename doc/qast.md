@@ -12,7 +12,7 @@ The following operators are currently supported:
 |   `$`    | (none)      | value       | Get current row                     |
 |   `.`    | 2+ string   | value       | Get field from the first operand    |
 |   `~`    | 2 strings   | null/object | Regular expression matcher          |
-|   `+`    | 1+ value    | value       | Sum or strings/arrays concatenation |
+|   `+`    | 1+ values   | value       | Sum or strings/arrays concatenation |
 |   `-`    | 1+ numbers  | number      | Subtraction                         |
 |   `*`    | 1+ numbers  | number      | Multiplication                      |
 |   `/`    | 1+ numbers  | number      | Division                            |

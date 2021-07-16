@@ -53,8 +53,8 @@
   "Parse query AST into PostgreSQL predicate.
   Return nil in case of an invalid AST."
   [ast]
-  (cond (vector? ast) (if-let [[op pred] (get ops-psql (first ast))]
-                        (when (pred (dec (count ast)))
+  (cond (vector? ast) (if-let [[op valid?] (get ops-psql (first ast))]
+                        (when (valid? (dec (count ast)))
                           (let [args (map qast->psql (rest ast))]
                             (when (every? some? args)
                               (format "(%s)" (op args)))))
@@ -73,8 +73,8 @@
     (when ast (qast->psql ast))))
 
 (defn mkfn
-  [op]
   "Construct a function returning a lambda lazily applying given operator."
+  [op]
   (fn [args]
     (fn [row]
       (apply op (map #(% row) args)))))
@@ -84,7 +84,10 @@
   {"$" [(constantly identity) #(= % 0)]
    "." [(fn [args]
           (fn [row] (reduce #(get %1 %2) (map #(% row) args)))) #(> % 1)]
-   "~" [#(apply format "%s ~ %s" %) #(= % 2)] ; TODO
+   "~" [(fn [args]
+          (fn [row]
+            (let [[s p] (map #(% row) args)]
+              (re-matches (re-pattern p) s)))) #(= % 2)]
    "+" [(mkfn +) #(> % 0)]
    "-" [(mkfn -) #(> % 0)]
    "*" [(mkfn *) #(> % 0)]
@@ -97,8 +100,10 @@
    "<" [(mkfn <) #(> % 1)]
    "<=" [(mkfn <=) #(> % 1)]
    "&&" [#(apply format "%s && %s" %) #(= % 2)] ; TODO
-   "&" [#(string/join " AND " %) any?] ; TODO
-   "|" [#(string/join " OR " %) any?] ; TODO
+   "&" [(fn [args]
+          (fn [row] (every? identity (map #(% row) args)))) any?]
+   "|" [(fn [args]
+          (fn [row] (some identity (map #(% row) args)))) any?]
    "!" [(mkfn not) #(= % 1)]})
 
 (defn qast->fn
@@ -106,8 +111,8 @@
   Return nil in case of an invalid AST."
   [ast]
   (if (vector? ast)
-    (if-let [[op pred] (get ops-fn (first ast))]
-      (when (pred (dec (count ast)))
+    (if-let [[op valid?] (get ops-fn (first ast))]
+      (when (valid? (dec (count ast)))
         (let [args (map qast->fn (rest ast))]
           (when (every? some? args)
             (op args))))
