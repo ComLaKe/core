@@ -8,7 +8,6 @@
 \usepackage{hyperref}
 \usepackage{enumitem}
 \usepackage{siunitx}
-\usepackage[titletoc]{appendix}
 \usepackage[numbib]{tocbibind}
 \usepackage[acronym,section,toc]{glossaries}
 \input{gls.tex}
@@ -42,9 +41,8 @@
 \include{main/eval.tex}
 \include{main/outro.tex}
 
-\begin{appendices}
-  \input{appendices/ack.tex}
-  \input{appendices/bib.tex}
-  \chapter{Terms and Acronyms}\printglossaries
-\end{appendices}
+\appendix
+\input{appendices/ack.tex}
+\input{appendices/bib.tex}
+\chapter{Terms and Acronyms}\printglossaries
 \end{document}

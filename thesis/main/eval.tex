@@ -8,8 +8,40 @@ of ComLake core were completed.  The \gls{api} was sufficiently
 documented\footnote{\url{https://comlake.github.io/comlake.core/api.html}}
 for other components to integrate with.
 
-% rethink vs postgres
-% just over 1000 LoC
-% no releases
+At the end of the internship period, the codebase had a modest size of under
+1200 lines of code (excluding all tests and documentation), over a half which
+was in Java and the remaining was in Clojure.  The test suite on the other hand
+was written entirely in Clojure.  It contained 28 assertions in total
+and covered over \SI{96}{\percent} \emph{of the Clojure code}.
+
+Since the first release, eight tags have been published in a course
+of two months, alternating between adding new features and delivering
+bug fixes.  Despite intensive testing, we were still lacking the confidence
+to bump to a non-zero major version number and warrant a stable interface:
+the core \gls{api} changed still slightly every other commit.
+
+Speaking of performance, the number of connection a core instance could serve
+has been in the order of thousands since the transitioning from RethinkDB
+to PostgreSQL, as shown in table~\ref{rdbpsql}.  Note that the drop in
+the base (control) operation in comlake.core 0.2.0 is likely due to
+the introduction of logging.
+\begin{table}\centering
+  \caption{Performance in requests per second between comlake.core 0.1.1
+  and 0.2.0 using RethinkDB and PostgreSQL as \gls{db} back-end respectively}
+  \begin{tabular}{l r r}
+    \toprule
+    Operation & RethinkDB back-end & PostgreSQL back-end\\
+    \midrule
+    File upload \emph{and} \gls{db} insert & 325.40 & 357.28\\
+    \gls{db} look-up & 121.01 & 5575.89\\
+    Download file & 8217.39 & 6238.30\\
+    No-operation (control) & 80994.41 & 29788.50\\
+    \bottomrule
+  \end{tabular}
+  \label{rdbpsql}
+\end{table}
+
 \section{Discussion}
-% clojure function table
+% clojure op table (data-oriented)
+% conn pool importance
+% polyglot, note on coverage measure
