@@ -89,7 +89,7 @@ for large datasets', preferably matching common local bandwidth
 \paragraph{Supportability}  The data lake core and its dependencies must
 be able to run on common \gls{os}, including, but not limited to,
 \acrshort{gnu}/Linux, Windows and macOS.  While the microservice is likely
-to be deployed on \acrshort{gnu}/Linux, it is uncertain if it will be
+to be deployed on the former, it is uncertain if it will be
 the future maintainers' \gls{os} of choice for development.  Furthermore,
 languages used for implementation and depended systems should be
 either familiar or easy to learn.
@@ -314,6 +314,12 @@ Moreover, information from exceptions are usually meant for debugging,
 not to used by the program.  Instead of defining wrapping exceptions
 to re-raise everywhere, we created an \verb|Outcome| generic class
 whose method's signatures are shown in listing~\ref{outcome}.
+
+An \verb|Outcome<Result, Error>| should be used as a return type,
+where \verb|Result| is the type of the original return value, and \verb|Error|
+can be anything the caller can analyze, including compound data like sets
+and hash tables.
+
 \begin{lstlisting}[label=outcome,caption=Generic outcome type
   for replacing exceptions,language=java]
 public class Outcome<Result, Error> {
@@ -326,11 +332,6 @@ public class Outcome<Result, Error> {
       Outcome<Result, Error> fail(Error value);
 }
 \end{lstlisting}
-
-An \verb|Outcome<Result, Error>| should be used as a return type,
-where \verb|Result| is the type of the original return value, and \verb|Error|
-can be anything the caller can analyze, including compound data like sets
-and hash tables.
 
 \subsection{Input/Output and Concurrency}\label{future}
 As the data lake often work with large datasets, it would not be possible
@@ -367,6 +368,30 @@ in listing~\ref{literal}.
 (defn metadata-extractor [fs db]
   (memoize (fn [cid mime] (future ...))))
 \end{lstlisting}
+
+\subsection{Metadata Extraction}
+From uploaded content, certain metadata can be extracted.  For multimedia,
+these are directly embeded in the files, such as Exif for images
+and audio recordings (in JPEG, TIFF, WAV or PNG formats~\cite{exif}).
+These metadata can later be used for dataset indexing and searching.
+
+For strutured or semi-structured data, a schema could be inferred from
+the content, which can later be used to extract specific rows or join
+with other data, as seen with \verb|qri sql|~\cite{qricli}.  We stored
+these schemata as JSON schema for interopability, and effectively treats
+structured formats like \gls{csv} as semi-structured.
+
+\gls{csv} schema were then inferred by pattern matching each value.
+In the core service this was done by passing the data to the higher-order
+function \verb|reduce|, along with a function \verb|and|'ing the previously
+detected type with the result of (regular expression) pattern matching,
+falling back to \verb|string|.  Conceptually it would be similar for \gls{json},
+but we used a library\footnote{Clojure \gls{json} Schema Validator \& Generator:
+\url{https://github.com/luposlip/json-schema}}.
+
+One other semi-structured file format is \gls{xml}.  However, as its elements'
+attributes and contents cannot be directly mapped to \gls{json} key-value
+objects, it is not possible to generate a JSON schema for a \gls{xml} file.
 
 \subsection{Query Transformations}
 As the \gls{qast} is used for both \verb|POST /extract/{cid}|
@@ -406,7 +431,7 @@ was used instead, like \verb|every? identity| replacing \verb|apply and|.
 After some preprocessing, supported (semi-)structured data (\gls{json}
 and \gls{csv}) are filtered by the same \verb|pred|.
 
-With the same \gls{qast} being used for PostgreSQL, JSON and CSV,
+With the same \gls{qast} being used for PostgreSQL, \gls{json} and \gls{csv},
 query polymorphism has been achieved, which simplifies and unifies
 the \gls{api}.
 

@@ -92,4 +92,25 @@ exists a race condition.  More importantly, \verb|memoize| memoizes all results,
 which occupy memory over time; a cache invalidation mechanism should be added.
 
 \subsection{Query Polymorphism}
-% note on lack of XML support
+The use of a same query language for both dataset lookup and content extraction
+has both advantages and downsides.  On the upside, an unified interface
+reduces the complexity and is arguably easier to adopt.  Even in the development
+of the core itself, the \gls{qast} allowed test cases to share queries
+and regressions could be spotted from different results from a same query.
+
+On the other hand, in a sense some flexibility was lost.  Some data formats
+like \gls{xml} cannot have their structure expressed in a JSON schema.
+Consequently, the data cannot be extracted without a workaround transforming
+them to a \gls{json}-like format.  Such workaround is, though not pretty,
+possible in theory.
+
+\subsection{Use of Free Software}
+Free/libre software is used exclusively as dependencies and in the development
+process.  The benefits of this went beyond making the resulting software
+copyleft semantically.  For instance, the schema inference was made after
+studying Qri's source code\footnote{Although the implementation is not
+directly based on the inspiration.} and several patches were made to a fork
+of the \gls{ipfs} client for Java and redistributed specifically for
+ComLake\footnote{\url{https://github.com/ComLake/java-ipfs-http-client}}.
+That being said, some library such as JSON-java had to be avoided in order
+to comply with the GNU Affero General Public License.
