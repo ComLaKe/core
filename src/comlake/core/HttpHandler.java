@@ -53,9 +53,9 @@ public class HttpHandler {
         fs = filesystem;
         db = database;
 
-        require.invoke(Clojure.read("comlake.core.db.qast"));
-        parseAst = Clojure.var("comlake.core.db.qast", "json->psql");
-        parseAstFn = Clojure.var("comlake.core.db.qast", "json->fn");
+        require.invoke(Clojure.read("comlake.core.qast"));
+        parseAst = Clojure.var("comlake.core.qast", "json->psql");
+        parseAstFn = Clojure.var("comlake.core.qast", "json->fn");
 
         require.invoke(Clojure.read("comlake.core.extract.data"));
         extractData = Clojure.var("comlake.core.extract.data", "extract-data");

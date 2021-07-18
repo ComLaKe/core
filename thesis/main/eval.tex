@@ -12,7 +12,7 @@ At the end of the internship period, the codebase had a modest size of under
 1200 lines of code (excluding all tests and documentation), over a half which
 was in Java and the remaining was in Clojure.  The test suite on the other hand
 was written entirely in Clojure.  It contained 28 assertions in total
-and covered over \SI{96}{\percent} \emph{of the Clojure code}.
+and covered over \SI{98}{\percent} \emph{of the Clojure code}.
 
 Since the first release, eight tags have been published in a course
 of two months, alternating between adding new features and delivering
@@ -27,10 +27,13 @@ the base (control) operation in comlake.core 0.2.0 is likely due to
 the introduction of logging.
 \begin{table}\centering
   \caption{Performance in requests per second between comlake.core 0.1.1
-  and 0.2.0 using RethinkDB and PostgreSQL as \gls{db} back-end respectively}
+  and 0.2.0 using RethinkDB and PostgreSQL as \gls{db} back-end respectively,
+  benchmarked using wrk on a Intel\textsuperscript{\tiny\textregistered}
+  Core\textsuperscript{\tiny\texttrademark} i5-8250U \acrshort{cpu} and
+  \SI{8}{\giga\byte} of memory}
   \begin{tabular}{l r r}
     \toprule
-    Operation & RethinkDB back-end & PostgreSQL back-end\\
+    Operation & comlake.core 0.1.1 & comlake.core 0.2.0\\
     \midrule
     File upload \emph{and} \gls{db} insert & 325.40 & 357.28\\
     \gls{db} look-up & 121.01 & 5575.89\\
@@ -42,6 +45,51 @@ the introduction of logging.
 \end{table}
 
 \section{Discussion}
-% clojure op table (data-oriented)
-% conn pool importance
-% polyglot, note on coverage measure
+% say something here
+
+\subsection{Polyglot Development}
+One notable aspect of the development process is the interoperation of Java
+and Clojure.  While it was seamless to call from one language to another,
+some tooling of one often encountered troubles working with the other,
+for instance hot loading plugins for Java and Clojure failed to work together,
+thus Clojure code had to be manually reloaded and the \gls{http} server
+has to be restarted frequently.  One other drawback was the lack of a coverage
+measuring tool for both languages, one for Clojure\footnote{Cloverage:
+\url{https://github.com/cloverage/cloverage}} was used because it was used
+to implement most of the non-trivial data transformation, plus the \gls{http}
+routing for Aleph.  This made the reported figure less meaningful; we had
+to manually check if Java methods are tested, especially on branching points.
+
+Originally, Java was dictated as the sole language for implementation
+for future maintenance by other \gls{usth} students and staff.  Clojure
+was added for first-class functions which were used extensively in constructing
+\gls{jvm}-native predicates for data extraction.  \Glspl{closure} were also
+really handy in this case such as in listing~\ref{anon} and for providing
+\gls{fs} and \gls{db} clients explicitly to a memoized function
+in listing~\ref{literal} (in contrast to singletons or global variables).
+While \gls{homoiconicity} was not utilized directly, Clojure's builtin types
+allowed organizing target functions in query transformations directly
+as key-value maps.  Together, Clojure helped improve the codebase by making it
+more concise, intuitive and data-oriented, and thus more maintainable.
+
+\subsection{Concurrency}
+The majority of concurrency handling is leveraged by the Aleph framework,
+which efficiently utilize thread-pool to maximize \gls{cpu} utilization
+and task switching for best \gls{io} performance.  Whilst running alone it can
+serve up to tens of thousands or requests every second on a personal laptop,
+it is not the only \gls{io}-intensize spot.  The way connections are made to
+to persistence layers is also important.  As also shown in table~\ref{rdbpsql},
+using a \gls{db} client with connection pool can greatly enhance
+the performance.  The same could be said to the \gls{ipfs} client,
+which currently does not implement any connection pool and seem to have
+a relatively high latency compared to the \gls{db} counterpart.
+
+Other concurrency mechanisms were also utilized, such as memoized \verb|future|
+as a synchronization point to minimize re-execution of metadata extraction.
+This was not a perfect solution though, while it take almost negligible time
+to create the \verb|future| in listing~\ref{literal}, theoretically there still
+exists a race condition.  More importantly, \verb|memoize| memoizes all results,
+which occupy memory over time; a cache invalidation mechanism should be added.
+
+\subsection{Query Polymorphism}
+% note on lack of XML support

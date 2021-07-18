@@ -189,15 +189,15 @@ data integrity and eliminating content duplication~\cite{ipfs}.
 \subsubsection{Database management system}
 Early prototypes used RethinkDB\footnote{\url{https://rethinkdb.com}}
 for its embedded query language and dynamic data support.  Due to the lack
-of a client with connection pool for \gls{jvm}, though, we had to switched
-to PostgreSQL\footnote{\url{https://postgresql.org}}, which also natively support
+of a client with connection pool for \gls{jvm}, though, we had to switched to
+PostgreSQL\footnote{\url{https://postgresql.org}}, which also natively support
 semi-structured data, to use its \gls{jdbc} driver and improve the performance.
 
 It is worth noting that the connection to both \gls{dfs} and \gls{dbms}
 must be abstracted for modularity.  It is entirely possible that in the future
 the choices for those will no longer be the most suitable, and the transition
 to a fitter technology should be as frictionless as possible.  The interfaces
-for the clients of these persistency systems were named following
+for the clients of these persistence systems were named following
 Java convention as shown in figure~\ref{tech}.
 
 \subsection{Interface}
@@ -289,7 +289,9 @@ the addition operator is \verb|"+"|.  The following are supported:
 
 An expression may support more than two operands.  This helps flatten the query
 and applies to most logical and arithmetic operators (except for modulo)
-and the field getter.
+and the field getter, for example a predicate of \emph{the field \texttt{bar}
+of the \texttt{foo} field of the current row inclusively matching `branch' and
+`batch'} could be written as \verb|["~", [".", ["$"], "foo", "bar"], "b.*ch"]|.
 
 \section{Implementation}
 The implementation is hosted on GitHub under the ComLake
@@ -311,8 +313,9 @@ class of error.}.
 Moreover, information from exceptions are usually meant for debugging,
 not to used by the program.  Instead of defining wrapping exceptions
 to re-raise everywhere, we created an \verb|Outcome| generic class
-with the following signature:
-\begin{verbatim}
+whose method's signatures are shown in listing~\ref{outcome}.
+\begin{lstlisting}[label=outcome,caption=Generic outcome type
+  for replacing exceptions,language=java]
 public class Outcome<Result, Error> {
     public boolean ok;
     public Result result;
@@ -322,7 +325,7 @@ public class Outcome<Result, Error> {
     public static <Result, Error>
       Outcome<Result, Error> fail(Error value);
 }
-\end{verbatim}
+\end{lstlisting}
 
 An \verb|Outcome<Result, Error>| should be used as a return type,
 where \verb|Result| is the type of the original return value, and \verb|Error|
@@ -357,13 +360,13 @@ and should not be pooling on the search endpoint.  Hence,
 
 Moreover, as it is possible for the schema to be requested before the scheduled
 inferring job finishes and duplicate the task, such race condition is minimized
-by memoizing the future.  In Clojure, this was done as follows:
-\begin{verbatim}
-(defn metadata-extractor
-  "Construct a metadata extractor."
-  [...]
+by memoizing the future.  In Clojure, this was done as shown
+in listing~\ref{literal}.
+\begin{lstlisting}[label=literal,caption=Constructing
+  a metadata extractor,language=lisp]
+(defn metadata-extractor [fs db]
   (memoize (fn [cid mime] (future ...))))
-\end{verbatim}
+\end{lstlisting}
 
 \subsection{Query Transformations}
 As the \gls{qast} is used for both \verb|POST /extract/{cid}|
@@ -387,13 +390,15 @@ Because \verb|pred| is created from \verb|op|, the latter must be of the form
 \verb|(fn [args] (fn [row] ...))|.  As operators are applied recursively,
 \verb|args| is a collections of \verb|pred|, or each one in \verb|args|
 must be called with row: \verb|(map #(% row) args)|.  Combining all these,
-a operator mapping for normal functions was implemented as follows\footnote{The
-final implementation involved some additional null-checking.}.
-\begin{verbatim}
+a operator mapping for normal functions could be implemented as seen in
+listing~\ref{anon}\footnote{The final implementation involved some additional
+null-checking.}.
+\begin{lstlisting}[label=anon,caption=Constructing a function returning
+  another one lazily applying given the given one,language=lisp]
 (defn mkfn [func]
   (fn [args]
     (fn [row] (apply func (map #(% row) args)))))
-\end{verbatim}
+\end{lstlisting}
 
 For example, \verb|(mkfn +)| is an \verb|op| for addition.  Macros, however,
 cannot be passed to \verb|mkfn| so their more generic functional equivalent
@@ -417,7 +422,7 @@ AppDirs\footnote{\url{https://github.com/harawata/appdirs}}.
 To assure the correctness of the implementations, multiple testing methods
 are used.  The automated test suite were written as a mixture of
 both integration and unit tests, aiming for at least \SI{90}{\percent}
-line coverage.  They were run locally as well as on SourceHut CI
+line coverage.  They were run locally as well as on SourceHut \gls{ci}
 service\footnote{\url{https://builds.sr.ht/~cnx/comlake.core}}
 to test the deployment of depending services as well.  An instance
 was also set up on ICTLab with the help and manual testing

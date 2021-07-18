@@ -15,7 +15,7 @@
 ;;;; You should have received a copy of the GNU Affero General Public License
 ;;;; along with comlake.core.  If not, see <https://www.gnu.org/licenses/>.
 
-(ns comlake.core.db.qast
+(ns comlake.core.qast
   "Query abstract syntax tree parser."
   (:require [clojure.data.json :as json]
             [clojure.string :as string]))
@@ -112,9 +112,9 @@
    "<=" [(mkfn <=) #(> % 1)]
    ;; TODO: "&&" [#(apply format "%s && %s" %) #(= % 2)]
    "&" [(fn [args]
-          (fn [row] (every? identity (map #(% row) args)))) any?]
+          (fn [row] (every? boolean (map #(% row) args)))) any?]
    "|" [(fn [args]
-          (fn [row] (some identity (map #(% row) args)))) any?]
+          (fn [row] (not (every? not (map #(% row) args))))) any?]
    "!" [(mkfn not) #(= % 1)]})
 
 (defn qast->fn

@@ -19,12 +19,19 @@
 (ns comlake.core.qast-test
   "Query AST parser tests."
   (:require [clojure.test :refer [deftest is testing]]
-            [comlake.core.db.qast :refer [qast->psql]]))
+            [comlake.core.qast :refer [qast->fn qast->psql]]))
 
-(deftest operators
+(def regex-example ["~" "name@domain.com" ".*@(.*)"])
+(def maths-example ["&"
+                    ["==" ["-" ["+" 2 2] 1] 3]
+                    ["<" 3 ["/" 8 2] ["%" ["*" 2 2 3] 7]]
+                    [">=" 3000 100]
+                    ["!" ["|" ["<=" 420 69] [">" 9 11] ["!=" 8 8]]]])
+
+(deftest psql-gen
   (testing "regular expression"
     (is (= "('name@domain.com' ~ '.*@(.*)')"
-           (qast->psql ["~" "name@domain.com" ".*@(.*)"]))))
+           (qast->psql regex-example))))
   (testing "logical intersection"
     (is (= "((topics) && ARRAY['copypasta'])"
            (qast->psql ["&&" ["." ["$"] "topics"] ["copypasta"]]))))
@@ -33,8 +40,10 @@
                 " AND (3 < (8 / 2) < (MOD((2 * 2 * 3), 7)))"
                 " AND (3000 >= 100)"
                 " AND (NOT ((420 <= 69) OR (9 > 11) OR (8 <> 8))))")
-           (qast->psql ["&"
-                        ["==" ["-" ["+" 2 2] 1] 3]
-                        ["<" 3 ["/" 8 2] ["%" ["*" 2 2 3] 7]]
-                        [">=" 3000 100]
-                        ["!" ["|" ["<=" 420 69] [">" 9 11] ["!=" 8 8]]]])))))
+           (qast->psql maths-example)))))
+
+(deftest fn-gen
+  (testing "regular expression"
+    (is ((qast->fn regex-example) {})))
+  (testing "quick maths"
+    (is ((qast->fn maths-example) {}))))
