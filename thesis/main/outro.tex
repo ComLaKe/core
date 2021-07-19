@@ -1,6 +1,20 @@
 \chapter{Conclusion}
-\section{Future Works}
-% ipfs conn pool
-% multimedia metadata extract
-% xml
-% caching
+Through the development of the presented work, we were able to confirm
+certain commonly accepted principles such as the importance of connection pools
+to performance with database and the benefits of software freedom.  We also
+had a chance to take a deeper look into the trade-offs of using Java and Clojure
+together in certain contexts, as well as a concept of query polymorphism.
+We believe that the ComLake core service was not only functional and in
+some ways useful for the early usage as part of a data lake for \gls{usth},
+but also bought some novelty to the data management space, even if minor.
+
+However, it is important to acknowledge that neither the design
+nor the implementation is complete or perfect in any criteria.  Performance
+around \gls{ipfs} has yet to reach its full potential; a connection pool
+and the use of an \gls{ipfs} may drastically improve the relevant benchmark.
+Furthermore, metadata extraction is still lacking support for binary
+and unstructured data, plus \gls{xml} could be integrated in the future.
+A caching invalidation mechanism for those metadata will also be necessary
+to stabilizes memory usage in long-running instances.  In addition,
+more work can be put into the design of \gls{qast} to further generalize it
+and allow more powerful queries.

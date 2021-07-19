@@ -12,7 +12,8 @@ At the end of the internship period, the codebase had a modest size of under
 1200 lines of code (excluding all tests and documentation), over a half which
 was in Java and the remaining was in Clojure.  The test suite on the other hand
 was written entirely in Clojure.  It contained 28 assertions in total
-and covered over \SI{98}{\percent} \emph{of the Clojure code}.
+and covered over \SI{98}{\percent} \emph{of the Clojure code}.  Together with
+the documentation, they were released under the \gls{agplv3}.
 
 Since the first release, eight tags have been published in a course
 of two months, alternating between adding new features and delivering
@@ -45,7 +46,9 @@ the introduction of logging.
 \end{table}
 
 \section{Discussion}
-% say something here
+In this section, we will be discussing the benefits and disadvantages
+of notable choices from the observed results.  The topics will range
+from decisions on languages to concurrency model and licensing.
 
 \subsection{Polyglot Development}
 One notable aspect of the development process is the interoperation of Java
@@ -71,6 +74,10 @@ While \gls{homoiconicity} was not utilized directly, Clojure's builtin types
 allowed organizing target functions in query transformations directly
 as key-value maps.  Together, Clojure helped improve the codebase by making it
 more concise, intuitive and data-oriented, and thus more maintainable.
+
+One may argue that similar could be achieved through Java 8 lambda expressions
+and anonymous class, but we believe that such solution shall not reach
+the same level of conciseness and intuitiveness.
 
 \subsection{Concurrency}
 The majority of concurrency handling is leveraged by the Aleph framework,
@@ -105,12 +112,16 @@ them to a \gls{json}-like format.  Such workaround is, though not pretty,
 possible in theory.
 
 \subsection{Use of Free Software}
-Free/libre software is used exclusively as dependencies and in the development
+Free (libre) software is used exclusively as dependencies and in the development
 process.  The benefits of this went beyond making the resulting software
-copyleft semantically.  For instance, the schema inference was made after
+copyleft semantically.  For instance, schema inference was made after
 studying Qri's source code\footnote{Although the implementation is not
 directly based on the inspiration.} and several patches were made to a fork
 of the \gls{ipfs} client for Java and redistributed specifically for
 ComLake\footnote{\url{https://github.com/ComLake/java-ipfs-http-client}}.
+
 That being said, some library such as JSON-java had to be avoided in order
-to comply with the GNU Affero General Public License.
+to comply with \gls{agplv3}, or any other libre software license, as the
+library's license has a non-free clause: ``The software shall be used for good,
+not evil.''
+
