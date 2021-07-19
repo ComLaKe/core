@@ -8,19 +8,6 @@ of ComLake core were completed.  The \gls{api} was sufficiently
 documented\footnote{\url{https://comlake.github.io/comlake.core/api.html}}
 for other components to integrate with.
 
-At the end of the internship period, the codebase had a modest size of under
-1200 lines of code (excluding all tests and documentation), over a half which
-was in Java and the remaining was in Clojure.  The test suite on the other hand
-was written entirely in Clojure.  It contained 28 assertions in total
-and covered over \SI{98}{\percent} \emph{of the Clojure code}.  Together with
-the documentation, they were released under the \gls{agplv3}.
-
-Since the first release, eight tags have been published in a course
-of two months, alternating between adding new features and delivering
-bug fixes.  Despite intensive testing, we were still lacking the confidence
-to bump to a non-zero major version number and warrant a stable interface:
-the core \gls{api} changed still slightly every other commit.
-
 Speaking of performance, the number of connection a core instance could serve
 has been in the order of thousands since the transitioning from RethinkDB
 to PostgreSQL, as shown in table~\ref{rdbpsql}.  Note that the drop in
@@ -44,6 +31,76 @@ the introduction of logging.
   \end{tabular}
   \label{rdbpsql}
 \end{table}
+
+In addition to the relatively low latency, ComLake core's throughput
+approaches that of \gls{ipfs}, when compared to its \gls{cli} client.
+This was confirmed by running the commands in listing~\ref{add} against
+a same file of size \SI{2.4}{\giga\byte}.  The result is demonstrated
+in table~\ref{throughput}.  \gls{ipfs} performs deduplication passively,
+so an reupload of the same file costs fewer operations than the first time.
+\begin{lstlisting}[label=add,caption=Adding Cruella.mkv
+  through \gls{ipfs} \gls{cli} client and ComLake core,language=sh]
+# Uploading
+ipfs add -q Cruella.mkv > cid
+curl -s -X POST $netloc/file \
+  -H Content-Type:video/x-matroska -T Cruella.mkv
+# Downloading
+ipfs cat $(cat cid) > /dev/null
+curl $netloc/file/$(cat cid) > /dev/null
+\end{lstlisting}
+
+\begin{table}\centering
+  \caption{Performance between go-ipfs \gls{cli} client and comlake.core,
+  adding a \SI{2.4}{\giga\byte} to a local \gls{ipfs} node
+  on a SK hynix PC401 NVMe solid-state drive}
+  \begin{tabular}{l r r}
+    \toprule
+    Scenario & \gls{ipfs} \gls{cli} & ComLake core\\
+    \midrule
+    Initial upload & \SI{65}{\mega\byte\per\second}
+                   & \SI{61}{\mega\byte\per\second}\\
+    Reupload & \SI{228}{\mega\byte\per\second}
+             & \SI{199}{\mega\byte\per\second}\\
+    Download & \SI{193}{\mega\byte\per\second}
+             & \SI{187}{\mega\byte\per\second}\\
+    \bottomrule
+  \end{tabular}
+  \label{throughput}
+\end{table}
+
+At the end of the internship period, the codebase had a modest size of under
+1200 lines of code (excluding all tests and documentation), over a half which
+was in Java and the remaining was in Clojure.  The test suite on the other hand
+was written entirely in Clojure.  It contained 28 assertions in total
+and covered over \SI{98}{\percent} \emph{of the Clojure code}.  Together with
+the documentation, they were released under the \gls{agplv3}.
+
+\begin{lstlisting}[label=extract,caption=Example request and response
+  of data extraction,language=sh]
+curl -s -X POST $netloc/extract/$cid \
+  --data '["~",[".",["$"],"country_name"],"Vie.*"]' \
+  -H Content-Type:application/json | jq
+[
+  {
+    "country_code": "VNM",
+    "country_name": "Vietnam",
+    "indicator_name": "Population, total",
+    "year_1969": 42307146,
+    ...
+  }
+]
+\end{lstlisting}
+
+Both the test suite and documentation covers every endpoint with concrete
+examples to be reproduced via common \gls{http} tools, with one case
+in point shown in listing~\ref{extract}, where \verb|$cid| identifies
+a \gls{csv} file.
+
+Since the first release, eight tags have been published in a course
+of two months, alternating between adding new features and delivering
+bug fixes.  Despite intensive testing, we were still lacking the confidence
+to bump to a non-zero major version number and warrant a stable interface:
+the core \gls{api} changed still slightly every other commit.
 
 \section{Discussion}
 In this section, we will be discussing the benefits and disadvantages

@@ -329,16 +329,6 @@ be unintentional\footnote{One may alternatively declare the variable before
 the assignment, but uninitialized variables are subject to a different
 class of error.}.
 
-Moreover, information from exceptions are usually meant for debugging,
-not to used by the program.  Instead of defining wrapping exceptions
-to re-raise everywhere, we created an \verb|Outcome| generic class
-whose method's signatures are shown in listing~\ref{outcome}.
-
-An \verb|Outcome<Result, Error>| should be used as a return type,
-where \verb|Result| is the type of the original return value, and \verb|Error|
-can be anything the caller can analyze, including compound data like sets
-and hash tables.
-
 \begin{lstlisting}[label=outcome,caption=Generic outcome type
   for replacing exceptions,language=java]
 public class Outcome<Result, Error> {
@@ -351,6 +341,16 @@ public class Outcome<Result, Error> {
       Outcome<Result, Error> fail(Error value);
 }
 \end{lstlisting}
+
+Moreover, information from exceptions are usually meant for debugging,
+not to used by the program.  Instead of defining wrapping exceptions
+to re-raise everywhere, we created an \verb|Outcome| generic class
+whose method's signatures are shown in listing~\ref{outcome}.
+
+An \verb|Outcome<Result, Error>| should be used as a return type,
+where \verb|Result| is the type of the original return value, and \verb|Error|
+can be anything the caller can analyze, including compound data like sets
+and hash tables.
 
 \subsection{Input/Output and Concurrency}\label{future}
 As the data lake often work with large datasets, it would not be possible
