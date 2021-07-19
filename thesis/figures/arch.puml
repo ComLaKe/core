@@ -1,6 +1,4 @@
 @startuml
-!theme plain
-
 node Core {
     component "DB Client" as meta
     component "FS Client" as files

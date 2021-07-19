@@ -1,5 +1,4 @@
 @startuml
-!theme plain
 (*) --> "POST /file" as save
 (*) --> "POST /dir" as mkdir
 save --> "POST /cp" as cp

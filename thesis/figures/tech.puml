@@ -1,6 +1,4 @@
 @startuml
-!theme plain
-
 node Core {
     component Database as meta
     component FileSystem as files
