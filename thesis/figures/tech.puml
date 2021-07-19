@@ -1,12 +1,15 @@
 @startuml
-node Core {
-    component Database as meta
-    component FileSystem as files
-    component HttpHandler as http
-    component Extractor as extract
+node "Java virtual machine" {
+    component Aleph <<Ring>> as aleph
+    package Core {
+        component Database as meta
+        component FileSystem as files
+        component HttpHandler as http
+        component Extractor as extract
+    }
 }
 
-collections IPFS <<DFS>>
+storage IPFS <<DFS>>
 files <--> IPFS
 
 database PostgreSQL <<DBMS>>
@@ -19,5 +22,6 @@ extract <-down- files
 extract <-down-> meta
 
 cloud "Public API and Query Engine" as client
-client <--> http : HTTP
+client <--> aleph : HTTP
+aleph <-right-> http
 @enduml

@@ -6,7 +6,7 @@ node Core {
     component Extractor as extract
 }
 
-collections DFS
+storage DFS
 files <--> DFS
 
 database DBMS

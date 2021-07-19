@@ -1,7 +1,7 @@
 \chapter{Methodology}
 Development followed the evolutionary prototyping model: a robust prototype
 is built by improving and adding newly understood features~\cite{proto}.
-This often took 7--10 days, with requirements, design, implementation
+Each prototype often took 7--10 days, with requirements, design, implementation
 and test suite all being refined.
 
 \section{Requirement Analysis}
@@ -86,6 +86,13 @@ Furthermore, an instance should be able to maintain a high throughput
 for large datasets', preferably matching common local bandwidth
 (\SI{100}{\mega\bit\per\second} to \SI{1}{\giga\bit\per\second}).
 
+\paragraph{Scalability} The university and affiliations will often grow
+in students and researchers (data lake end-users), and so will the count
+and volume of the interested datasets.  Intuitively, it is more economical
+to add new hardware rather than upgrading the existing ones, hence
+every component working inside or with the data lake must be able to
+scale horizontally in production.
+
 \paragraph{Supportability}  The data lake core and its dependencies must
 be able to run on common \gls{os}, including, but not limited to,
 \acrshort{gnu}/Linux, Windows and macOS.  While the microservice is likely
@@ -107,10 +114,16 @@ for larger but unpopular datasets, and only supports tabular data~\cite{qri}.
 Kylo also does not support binary data, while requires substantial resources
 for each instance~\cite{kylo}.
 
+\begin{figure}[ht]\centering
+  \includegraphics[height=0.45\textheight]{figures/arch.eps}
+  \caption{Data lake overall architecture with focus on core's components}
+  \label{arch}
+\end{figure}
+
 \subsection{Architecture}
-Considering ICTLab's dynamic budget, the microservice architecture was chosen
-by Dr~\thesupervisor{} for the ease of scaling
-individual services out only when in need.  Through his consultancy
+Considering ICTLab's dynamic budget, the microservice architecture
+was chosen by Dr~\thesupervisor{} for the ease of horizontal scalability.
+Through his consultancy
 and discussions with other interns\footnote{\selectlanguage{vietnamese}Lê
 Như Chu Hiệp, Nguyễn Phương Thảo, Nguyễn An Thiết, Trần Minh Hiếu
 and Nguyễn Quốc Thông}, it was decided requests from external clients
@@ -132,46 +145,11 @@ directly through the core API or cached in the \gls{db}.  The flow directions
 of data between previously discussed components are illustrated
 in figure~\ref{arch}.
 
-\begin{figure}\centering
-  \includegraphics[height=0.45\textheight]{figures/arch.eps}
-  \caption{Data lake overall architecture with focus on core's components}
-  \label{arch}
-\end{figure}
-
 \subsection{Technology Choices}
 In a perfect world, choices of technology would be made following
 all other design decisions.  However, existing technologies all have
 limitations (or at least trade-offs) that we need to be aware of to best
 decide on low-level details.
-
-\begin{figure}\centering
-  \includegraphics[height=0.45\textheight]{figures/tech.eps}
-  \caption{Data lake core high-level architecture}
-  \label{tech}
-\end{figure}
-
-\subsubsection{Logging}
-Events are logged to standard output/error to be picked up
-by the logging service provided by the \gls{os} for maximum portability.
-On most GNU/Linux distributions, journald does this for every systemd service
-and can be configured to upload to any remote endpoint~\cite{journal}
-for debugging convenience.
-
-\subsubsection{Communication protocol}
-\gls{grpc} was first chosen for its high performance, but was later replaced
-by \gls{http} due to the lack of multi-parameter streaming methods.  This is
-essential for transporting data together with their metadata and was done
-by treating metadata as \gls{http} headers.  As \gls{grpc} uses \gls{http}
-under the hood, the change in protocol would not add any overhead.
-
-\subsubsection{Programming languages}
-Java\footnote{\url{https://oracle.com/java}} was picked among languages
-included in any course from the university's \gls{ict} major, for \gls{jvm}
-implementations' performance (comparing to other general-purpose languages'
-runtime with garbage-collection~\cite{game}).  The \gls{jvm} also offers
-great interoperability with other languages.  For interacting with dynamic data
-types, Clojure\footnote{\url{https://clojure.org}} was used to avoid
-performing Java reflection.
 
 \subsubsection{Distributed file system}
 \gls{hdfs} was initially considered because of Hadoop's popularity
@@ -181,7 +159,10 @@ is an deployment obstacle.
 
 After analyzing several alternatives, \gls{ipfs}\footnote{\url{https://ipfs.io}}
 was chosen for its cluster's ability to organically grow or shrink nodes
-without any performance interruption thanks to \gls{crdt} consensus~\cite{crdt}.
+without any performance interruption thanks to \gls{crdt} consensus~\cite{pin},
+This is because \gls{crdt}'s main property is the ability to be replicated
+and updated concurrently and independently without coordination between
+the replicas, while eventual consistency is guaranteed~\cite{crdt}.
 In addition, the use of Merkle \gls{dag} makes it an append-only storage
 with bidirectional mapping between content and \gls{cid} while maintaining
 data integrity and eliminating content duplication~\cite{ipfs}.
@@ -200,11 +181,49 @@ to a fitter technology should be as frictionless as possible.  The interfaces
 for the clients of these persistence systems were named following
 Java convention as shown in figure~\ref{tech}.
 
+\begin{figure}\centering
+  \includegraphics[height=0.45\textheight]{figures/tech.eps}
+  \caption{Data lake core architecture with components concretely specified
+    and conventionally named}
+  \label{tech}
+\end{figure}
+
+\subsubsection{Programming languages}
+Java\footnote{\url{https://oracle.com/java}} was picked among languages
+included in any course from the university's \gls{ict} major, for \gls{jvm}
+implementations' performance (comparing to other general-purpose languages'
+runtime with garbage-collection~\cite{game}).  The \gls{jvm} also offers
+great interoperability with other languages.  For interacting with dynamic data
+types, Clojure\footnote{\url{https://clojure.org}} was used to avoid
+performing Java reflection.
+
+\subsubsection{Communication protocol}
+\gls{grpc} was first chosen for its high performance, but was later replaced
+by \gls{http} due to the lack of multi-parameter streaming methods.  This is
+essential for transporting data together with their metadata and was done
+by treating metadata as \gls{http} headers.  As \gls{grpc} uses \gls{http}
+under the hood, the change in protocol would not add any overhead.
+
+\gls{http} is served by Aleph\footnote{\url{https://aleph.io}},
+which is one of the best ones on \gls{jvm} in term of performance
+with larger requests and error rates for persistent connections~\cite{aleph}.
+It has a simple and unified \gls{api} by following the the Ring specification,
+and treat the body of a \gls{http} request or response
+as a lazy \verb|java.io.InputStream|.
+
+\subsubsection{Logging}
+Events are logged to standard output/error to be picked up
+by the logging service provided by the \gls{os} for maximum portability.
+On most GNU/Linux distributions, \verb|journald| does this
+for every \verb|systemd| service and can be configured to upload
+to any remote endpoint~\cite{journal} for debugging convenience.
+
 \subsection{Interface}
 The \gls{api} was derived from the use cases quite straightforwardly.
 Figure~\ref{api} sums up the available endpoints in a logical order.
 All appending operations are arranged on the left and the endpoints
 on the right are for retrieving the added data.
+
 \begin{figure}
   \includegraphics[width=\textwidth]{figures/api.eps}
   \caption{Core HTTP API endpoints in a common order of access}
@@ -241,6 +260,12 @@ a relational database, PostgreSQL cannot provide optional columns.
 Each content can then be represented by multiple datasets under
 different metadata, or it can be a child of a represented one.
 
+\begin{figure}
+  \includegraphics[width=\textwidth]{figures/db.eps}
+  \caption{PostgreSQL schema for the data lake core}
+  \label{db}
+\end{figure}
+
 On the other hand, a dataset must be backed by exactly one content,
 so its \gls{cid} could be used as a foreign key.  A few generic properties
 were believed to be common and useful for indexing, and thus were required:
@@ -254,12 +279,6 @@ linked to the \emph{parent} through the \gls{id} and create a \gls{tree}
 of datasets that can be reconstructed from a query output.
 
 The described relations were visualized in figure~\ref{db}.
-
-\begin{figure}
-  \includegraphics[width=\textwidth]{figures/db.eps}
-  \caption{PostgreSQL schema for the data lake core}
-  \label{db}
-\end{figure}
 
 \subsection{Query Language}
 Both \verb|POST /find| and \verb|POST /extract/{cid}| require a \gls{predicate}
@@ -338,9 +357,9 @@ As the data lake often work with large datasets, it would not be possible
 to load an entire request body into memory\footnote{\gls{ipfs} client for Java
 needed a patch to enable request streaming but upstream was irresponsive so a
 fork has been maintained ever since.}.  Instead, an asynchronous \gls{io} model
-was adopted.  In the outermost layer, Aleph\footnote{\url{https://aleph.io}}
+was adopted.  In the outermost layer, Aleph
 and Netty\footnote{\url{https://netty.io}} are used to turn \gls{http}
-requests and responds into and from \verb|java.io.InputStream|.  These streams
+requests and responds into and from \verb|InputStream|.  These streams
 are only read or immediately written when ready, allowing us to apply
 back-pressure from connected storages.
 

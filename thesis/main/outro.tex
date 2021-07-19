@@ -11,7 +11,10 @@ but also bought some novelty to the data management space, even if minor.
 However, it is important to acknowledge that neither the design
 nor the implementation is complete or perfect in any criteria.  Performance
 around \gls{ipfs} has yet to reach its full potential; a connection pool
-and the use of an \gls{ipfs} may drastically improve the relevant benchmark.
+and the use of an \gls{ipfs} may drastically improve relevant benchmarks.
+Connection timeouts from the \gls{dfs} and \gls{dbms} would also need to be
+specifically handled to communicate problems with core \gls{api} clients.
+
 Furthermore, metadata extraction is still lacking support for binary
 and unstructured data, plus \gls{xml} could be integrated in the future.
 A caching invalidation mechanism for those metadata will also be necessary
