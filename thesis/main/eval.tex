@@ -1,5 +1,4 @@
 \chapter{Evaluation}
-
 \section{Results}
 Quantity-wise, the internship has delivered
 all expected outcomes and functional requirements.  In summary,
@@ -7,6 +6,81 @@ requirement analysis, architecture, design and implementation
 of ComLake core were completed.  The \gls{api} was sufficiently
 documented\footnote{\url{https://comlake.github.io/comlake.core/api.html}}
 for other components to integrate with.
+
+At the end of the internship period, the codebase had a modest size of under
+1200 lines of code (excluding all tests and documentation), over a half which
+was in Java and the remaining was in Clojure.  The test suite on the other hand
+was written entirely in Clojure.  It contained 28 assertions in total
+and covered over \SI{98}{\percent} \emph{of the Clojure code}.  Together with
+the documentation, they were released under the \gls{agplv3}.
+
+Since the first release, eight tags have been published in a course
+of two months, alternating between adding new features and delivering
+bug fixes.  Despite intensive testing, we were still lacking the confidence
+to bump to a non-zero major version number and warrant a stable interface:
+the core \gls{api} changed still slightly every other commit.
+
+Both the test suite and documentation covers every endpoint with concrete
+examples to be reproduced via common \gls{http} tools, with one case
+in point shown in listing~\ref{extract}, where \verb|$cid| identifies
+a \gls{csv} file.  In the \gls{api} documentation however, the examples
+were presented in \gls{http} requests and response standard forms
+with auxiliary headers omitted, as demonstrated in listings \ref{request}
+and \ref{response} respectively.
+
+\begin{lstlisting}[label=extract,caption=Using \texttt{curl} and \texttt{jq}
+  to extract data from the core service,language=sh]
+curl -s -X POST $netloc/extract/$cid \
+  --data '["~",[".",["$"],"country_name"],"Vie.*"]' \
+  -H Content-Type:application/json | jq
+[{"country_code": "VNM",
+  "country_name": "Vietnam",
+  "indicator_name": "Population, total",
+  "year_1969": 42307146,
+  ...}]
+\end{lstlisting}
+
+\begin{lstlisting}[label=request,caption=Example request adding a dataset]
+POST /dataset HTTP/1.1
+Accept: application/json
+Content-Type: application/json
+
+{"file": "QmbwXK2Wg6npoAusr9MkSduuAViS6dxEQBNzqoixanVtj5",
+ "description": "Interjection",
+ "source": "https://wiki.installgentoo.com",
+ "topics": ["Natural language", "copypasta"]}
+\end{lstlisting}
+
+\begin{lstlisting}[label=response,caption=Example response
+  from a successful a dataset insertion]
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{"id":"42"}
+\end{lstlisting}
+
+\begin{lstlisting}[label=log,caption={Example log output,
+  formatted for readability}]
+2038-01-19T03:14:07.911Z core DEBUG [comlake.core.main:60]
+- {:aleph/request-arrived 40445548573432,
+   :aleph/keep-alive? true,
+   :scheme :http, :request-method :post,
+   :server-name "localhost", :server-port 42069,
+   :uri "/dataset", :query-string nil,
+   :headers {"host" "localhost:42069",
+             "content-length" "193"},
+   :body #object[java.io.ByteArrayInputStream 0x5349e87f
+                 "java.io.ByteArrayInputStream@5349e87f"],
+   :remote-addr "127.0.0.1"}
+=> {:headers {"Content-Type" "application/json"},
+    :status 200,
+    :body "{\"id\":\"42\"}"}
+\end{lstlisting}
+
+Where appropriate, documentation examples are reused in the test suite
+to allow cross checking between the two.  With logging also enabled
+in automated test runs, it is possible to directly investigate the result
+like in listing~\ref{log}.
 
 Speaking of performance, the number of connection a core instance could serve
 has been in the order of thousands since the transitioning from RethinkDB
@@ -32,23 +106,6 @@ the introduction of logging.
   \label{rdbpsql}
 \end{table}
 
-In addition to the relatively low latency, ComLake core's throughput
-approaches that of \gls{ipfs}, when compared to its \gls{cli} client.
-This was confirmed by running the commands in listing~\ref{add} against
-a same file of size \SI{2.4}{\giga\byte}.  The result is demonstrated
-in table~\ref{throughput}.  \gls{ipfs} performs deduplication passively,
-so an reupload of the same file costs fewer operations than the first time.
-\begin{lstlisting}[label=add,caption=Adding Cruella.mkv
-  through \gls{ipfs} \gls{cli} client and ComLake core,language=sh]
-# Uploading
-ipfs add -q Cruella.mkv > cid
-curl -s -X POST $netloc/file \
-  -H Content-Type:video/x-matroska -T Cruella.mkv
-# Downloading
-ipfs cat $(cat cid) > /dev/null
-curl $netloc/file/$(cat cid) > /dev/null
-\end{lstlisting}
-
 \begin{table}\centering
   \caption{Performance between go-ipfs \gls{cli} client and comlake.core,
   adding a \SI{2.4}{\giga\byte} to a local \gls{ipfs} node
@@ -68,39 +125,23 @@ curl $netloc/file/$(cat cid) > /dev/null
   \label{throughput}
 \end{table}
 
-At the end of the internship period, the codebase had a modest size of under
-1200 lines of code (excluding all tests and documentation), over a half which
-was in Java and the remaining was in Clojure.  The test suite on the other hand
-was written entirely in Clojure.  It contained 28 assertions in total
-and covered over \SI{98}{\percent} \emph{of the Clojure code}.  Together with
-the documentation, they were released under the \gls{agplv3}.
-
-\begin{lstlisting}[label=extract,caption=Example request and response
-  of data extraction,language=sh]
-curl -s -X POST $netloc/extract/$cid \
-  --data '["~",[".",["$"],"country_name"],"Vie.*"]' \
-  -H Content-Type:application/json | jq
-[
-  {
-    "country_code": "VNM",
-    "country_name": "Vietnam",
-    "indicator_name": "Population, total",
-    "year_1969": 42307146,
-    ...
-  }
-]
+\begin{lstlisting}[label=add,caption=Adding Cruella.mkv
+  through \gls{ipfs} \gls{cli} client and ComLake core,language=sh]
+# Uploading
+ipfs add -q Cruella.mkv > cid
+curl -s -X POST $netloc/file \
+  -H Content-Type:video/x-matroska -T Cruella.mkv
+# Downloading
+ipfs cat $(cat cid) > /dev/null
+curl $netloc/file/$(cat cid) > /dev/null
 \end{lstlisting}
 
-Both the test suite and documentation covers every endpoint with concrete
-examples to be reproduced via common \gls{http} tools, with one case
-in point shown in listing~\ref{extract}, where \verb|$cid| identifies
-a \gls{csv} file.
-
-Since the first release, eight tags have been published in a course
-of two months, alternating between adding new features and delivering
-bug fixes.  Despite intensive testing, we were still lacking the confidence
-to bump to a non-zero major version number and warrant a stable interface:
-the core \gls{api} changed still slightly every other commit.
+In addition to the relatively low latency, ComLake core's throughput
+approaches that of \gls{ipfs}, when compared to its \gls{cli} client.
+This was confirmed by running the commands in listing~\ref{add} against
+a same file of size \SI{2.4}{\giga\byte}.  The result is demonstrated
+in table~\ref{throughput}.  \gls{ipfs} performs deduplication passively,
+so an reupload of the same file costs fewer operations than the first time.
 
 \section{Discussion}
 In this section, we will be discussing the benefits and disadvantages
@@ -137,11 +178,11 @@ and anonymous class, but we believe that such solution shall not reach
 the same level of conciseness and intuitiveness.
 
 \subsection{Concurrency}
-The majority of concurrency handling is leveraged by the Aleph framework,
-which efficiently utilize thread-pool to maximize \gls{cpu} utilization
-and task switching for best \gls{io} performance.  Whilst running alone it can
+The majority of concurrency handling was leveraged by the Aleph framework,
+which efficiently utilizes thread pools to maximize \gls{cpu} utilization and
+task switching for the best \gls{io} performance.  Whilst running alone it can
 serve up to tens of thousands or requests every second on a personal laptop,
-it is not the only \gls{io}-intensize spot.  The way connections are made to
+it is not the only \gls{io}-intensive spot.  The way connections are made to
 to persistence layers is also important.  As also shown in table~\ref{rdbpsql},
 using a \gls{db} client with connection pool can greatly enhance
 the performance.  The same could be said to the \gls{ipfs} client,

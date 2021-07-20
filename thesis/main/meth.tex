@@ -36,7 +36,7 @@ replace the normal response.
   \item Core responds with the \gls{cid} of the added \gls{content}.
 \end{enumerate}
 
-\paragraph{Add dataset}  This use case let other services add a dataset:
+\paragraph{Add dataset}  This use case lets other services add a dataset:
 \begin{enumerate}
   \item A dataset is sent to the core microservice.
   \item Core adds the dataset to the underlying \gls{db}.
@@ -68,7 +68,7 @@ to extract a content's parts satisfying a given \gls{predicate}:
   \item Core responds with the extracted elements.
 \end{enumerate}
 
-\paragraph{Gather logs}  This use case let system admins study
+\paragraph{Gather logs}  This use case lets system admins study
 events occurring in the core microservice for debugging purposes:
 \begin{enumerate}
   \item A system admin requests logs from core.
@@ -106,14 +106,6 @@ a copyleft license, in order to persist digital freedom in scientific research
 and promote independence and cooperation in education~\cite{libredu}.
 
 \section{Design}
-The design to be presented takes inspiration from several prior arts, such as
-Qri and Kylo, especially for high-level ideas.  However, these technologies were
-deemed as unsuitable for \gls{usth} due to their goal and scope differences.
-Qri is a peer-to-peer application which may have unpredictable performance
-for larger but unpopular datasets, and only supports tabular data~\cite{qri}.
-Kylo also does not support binary data, while requires substantial resources
-for each instance~\cite{kylo}.
-
 \begin{figure}[ht]\centering
   \includegraphics[height=0.45\textheight]{figures/arch.eps}
   \caption{Data lake overall architecture with focus on core's components}
@@ -371,7 +363,7 @@ resulting in lower overhead and better performance.
 Such thread pools are also utilized for metadata discovery, such as
 schema inferring.  When a \gls{content} is uploaded, its metadata extractor job
 is added to the pool and run in parallel with the \gls{http} handler.
-While this does not matches the definition of a data lake (schema on read),
+While this does not match the definition of a data lake (schema on read),
 it allows such metadata to present in the dataset search (\verb|POST /find|)
 without the client explicitly requesting for each entry.  That being said,
 in order to extract \emph{data}, the client needs to be aware of the schema

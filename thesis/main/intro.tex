@@ -1,16 +1,16 @@
 \chapter{Introduction}
 \section{Motivation}
-Many researchers at \gls{usth} operate with data on a regular basis
-and often a dataset is studied by multiple researchers from different
-departments and points in time.  Currently the data are organized manually,
-even on the laboratories' storages, which is prone to duplication
-and makes data discovery difficult.
+Researchers and students at \gls{usth} operate with data on a regular basis
+and often a dataset is studied by multiple people from different departments
+and points in time.  Currently the data are organized manually, usually in
+the laboratories' storages, which is prone to duplication and makes
+data discovery difficult.
 
-A data lake shared among the university's researchers, professors and students
-will not only save resources but also improve productivity and promote
-interdisciplinary collaborations.  With \gls{usth}'s goal of growing to be
-an excellent research university in {\selectlanguage{vietnamese}Việt Nam}
-and in the region~\cite{usth}, building such data lake can be an essential task.
+A data lake shared across the university will not only save resources
+but also improve productivity and promote interdisciplinary collaborations.
+With \gls{usth}'s goal of growing to be an excellent research university
+in {\selectlanguage{vietnamese}Việt Nam} and the region~\cite{usth},
+building such system is an essential task.
 
 \section{Background}
 A \emph{data lake} is a massive repository of multiple types of data
@@ -18,13 +18,19 @@ in their raw format at scale for a low cost~\cite{lake}.
 The data's schema (structure) is defined on read to minimize data modeling
 and integration costs~\cite{lake}.
 
-For the ease and efficiency of scaling, a microservice architecture
+There has been several technologies exploring these concepts such as
+Qri and Kylo, although unsuitable for \gls{usth} due to their goal
+and scope differences.  Qri is a peer-to-peer application which may have
+unpredictable performance for less popular datasets, and only supports
+tabular data~\cite{qri}.  Kylo also does not support binary data,
+while requires substantial resources for each instance~\cite{kylo}.
+
+For scaling ease and efficiency, a microservice architecture
 could be a good choice.  By arranging the data lake as a collection
-of loosely-coupled services, it becomes possible to scale individual services
+of loosely-coupled services, it becomes possible to scale individual ones
 individually~\cite{micro}.  In this architecture, the \emph{core} microservice
-is defined as the innermost component, which communicates directly
-with the storages.  The core shall provide an \gls{api} for other components
-to upload, query and extract data.
+is defined as the innermost component, communicating directly with the storages
+and providing an \gls{api} for others to upload, query and extract data.
 
 \emph{Append-only storages} only allow new data to be appended, whilst ensure
 the immutability of existing data.  As immutable data are thread-safe,
@@ -32,29 +38,27 @@ they reduce the complexity of the concurrency model, making it easier
 to comprehend and reason about~\cite{pure}.  This is particularly useful
 in large distributed systems with multiple moving parts.
 
-Since the data are immutable, each \emph{\gls{content}} can be given
-an \gls{id}, i.e.~a \gls{cid}.  For end-users, we also introduce
-a higher level concept: \emph{dataset}, composing of not only the content
-but also relevant metadata for indexing.  Like contents, datasets can also
-immutable, with changes written as a new revision linking to the previous one.
+An immutable \emph{\gls{content}} can be given an \gls{id}, i.e.~a \gls{cid}.
+For end-users, we also introduce a higher level concept: \emph{dataset},
+composing of not only the content but also relevant metadata for indexing.
+Datasets can also be immutable with changes written as new revisions.
 
 Append-only storages' operations boil down to two kinds: appending and reading.
 For the latter, sometimes the data are not wanted in their entirety,
 but filtered and accumulated.  While data of different types usually requires
-different tools and libraries to query upon, the core \gls{api} should be
-providing one single query language for all data types, plus their metadata.
+different tools and libraries to query upon, it can be possible to use only one
+query language for all data and metadata.
 In this thesis, such usage is referred to as \emph{query polymorphism}.
 
 \section{Objectives}
 The work presented here was done as part of a three-month internship
-in collaboration with several other students
-at \gls{usth} ICTLab\footnote{\url{https://ictlab.usth.edu.vn}} to build
-a data lake for a better management of the university's data.  The internship
-focused on the lake's core microservice, which abstracts underlying
-persistent layers and perform relevant metadata transformation and discovery.
-It should provide an internal interface to other components for data ingestion,
-(primitive) query and extraction, as well as carrying out tasks for enhancing
-the discoverability and usability of the aforementioned datasets.
+in collaboration with several other students at \gls{usth}
+ICTLab\footnote{\url{https://ictlab.usth.edu.vn}} to build a data lake
+for a better management of the university's data.  The internship focused on
+the lake's core microservice, which abstracts underlying persistent layers
+and perform relevant metadata transformation and discovery.  It should provide
+an \emph{internal} interface for data ingestion, (primitive) query and
+extraction, while enhancing the discoverability and usability of the datasets.
 
 After the internship period, the resulting codebase shall be maintained
 by ICTLab and future students, so the work must be designed, implemented
