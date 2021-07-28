@@ -126,6 +126,7 @@ public class HttpHandler {
         if (cid == null)
             return error("dest is not a directory");
 
+        db.insertDirectory(cid); // TODO: check status
         var json = gson.toJson(Map.of("cid", cid));
         return respond(200, contentType("application/json"), json);
     }
