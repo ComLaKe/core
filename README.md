@@ -39,6 +39,9 @@ it is recommended to compile ahead of time for a better performance
     comlake.core.main=> (def server (-main)) ; start HTTP server
     comlake.core.main=> (.close server) ; stop server (e.g. to restart)
 
+It is recommended to read the original author's [bachelor thesis]
+for the relevant design decisions.
+
 ## Copying
 
 ![AGPLv3](https://www.gnu.org/graphics/agplv3-155x51.png)
@@ -48,4 +51,5 @@ under the terms of the GNU [Affero General Public License][agplv3] version 3
 as published by the Free Software Foundation.
 
 [doc]: https://comlake.github.io/comlake.core/api.html
+[bachelor thesis]: https://doi.org/10.5281/zenodo.5091221
 [agplv3]: https://www.gnu.org/licenses/agpl-3.0.html
