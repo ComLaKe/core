@@ -308,7 +308,7 @@ of the \texttt{foo} field of the current row inclusively matching `branch' and
 The implementation is hosted on GitHub under the ComLake
 namespace\footnote{\url{https://github.com/ComLake/comlake.core}}.
 For the most part, it was derived directly from the design
-and use-case sequences.  This section is dedicated for low-level designs
+and use-case sequences.  This section focuses more on low-level designs
 and implementation details of less obvious cases.
 
 \subsection{Error Handling}
@@ -346,10 +346,8 @@ and hash tables.
 
 \subsection{Input/Output and Concurrency}\label{future}
 As the data lake often work with large datasets, it would not be possible
-to load an entire request body into memory\footnote{\gls{ipfs} client for Java
-needed a patch to enable request streaming but upstream was irresponsive so a
-fork has been maintained ever since.}.  Instead, an asynchronous \gls{io} model
-was adopted.  In the outermost layer, Aleph
+to load an entire request body into memory.  Instead, an asynchronous
+\gls{io} model was adopted.  In the outermost layer, Aleph
 and Netty\footnote{\url{https://netty.io}} are used to turn \gls{http}
 requests and responds into and from \verb|InputStream|.  These streams
 are only read or immediately written when ready, allowing us to apply
@@ -360,7 +358,11 @@ this concurrency model switches to the remaining tasks.  Multiple tasks
 are executed simultaneously in one thread so fewer threads need to be created,
 resulting in lower overhead and better performance.
 
-Such thread pools are also utilized for metadata discovery, such as
+For interfacing with databases (detailed in subsection~\ref{persist}),
+a connection pool is kept for reusing connections, as opposed
+to openning new ones for every request.
+
+Thread pools are also utilized for metadata discovery, such as
 schema inferring.  When a \gls{content} is uploaded, its metadata extractor job
 is added to the pool and run in parallel with the \gls{http} handler.
 While this does not match the definition of a data lake (schema on read),
@@ -379,6 +381,22 @@ in listing~\ref{literal}.
 (defn metadata-extractor [fs db]
   (memoize (fn [cid mime] (future ...))))
 \end{lstlisting}
+
+\subsection{Persistence Interfaces}\label{persist}
+As shown in figure~\ref{tech}, communication with the persistence layer
+is abstracted by the Database and FileSystem interfaces for modularity.
+On the database side, the tabular data in PostgreSQL are converted from
+and to simple a key-value mapping (\verb|java.util.Map|, which is used
+for communication with the \gls{http} handler).  As this happens,
+user inputs are type-checked and sanitized.
+
+While for the \gls{dfs}, the implementation is mostly mapping to
+the file system's \gls{api} calls, some workarounds were still required.
+As for copying \glspl{content} inside a directory, the parent folder
+has to be temporary copied to \gls{ipfs} mutable filesystem to perform
+the operation.  Furthermore, the \gls{ipfs} client for Java needed a patch
+to enable \gls{content} streaming\footnote{Upstream was irresponsive
+so a fork has been maintained ever since.}.
 
 \subsection{Metadata Extraction}
 From uploaded content, certain metadata can be extracted.  For multimedia,
@@ -405,7 +423,7 @@ attributes and contents cannot be directly mapped to \gls{json} key-value
 objects, it is not possible to generate a JSON schema for a \gls{xml} file.
 
 \subsection{Query Transformations}
-As the \gls{qast} is used for both \verb|POST /extract/{cid}|
+As the \gls{qast} is used in the Extractor for both \verb|POST /extract/{cid}|
 and \verb|POST /find|, it is respectively translated into \gls{jvm}
 and \gls{sql} for processing.  First, the original \gls{json} request body
 is converted to a Clojure \verb|vector|.  Its first element is then looked up
